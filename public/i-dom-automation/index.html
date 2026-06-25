@@ -1,0 +1,1780 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Codygo — DOM Automation Testbed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* ── OKLCH dark theme tokens ─────────────────────────────────────── */
+    :root {
+      --bg: oklch(0.16 0.02 260);
+      --bg-elevated: oklch(0.21 0.025 260);
+      --bg-panel: oklch(0.24 0.03 258);
+      --border: oklch(0.35 0.04 258);
+      --text: oklch(0.93 0.01 260);
+      --text-muted: oklch(0.72 0.02 260);
+      --accent: oklch(0.72 0.16 195);
+      --accent-dim: oklch(0.55 0.12 195);
+      --warn: oklch(0.78 0.14 75);
+      --danger: oklch(0.65 0.18 25);
+      --success: oklch(0.72 0.14 145);
+      --shadow: oklch(0.08 0.02 260 / 0.55);
+      --radius: 10px;
+      --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--text);
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, oklch(0.28 0.06 195 / 0.35), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 100%, oklch(0.22 0.05 280 / 0.2), transparent);
+      min-height: 100vh;
+    }
+
+    a { color: var(--accent); }
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .site-header {
+      border-bottom: 1px solid var(--border);
+      background: oklch(0.18 0.025 260 / 0.92);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .site-header__inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .site-header h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .site-header p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .site-header .badge {
+      display: inline-block;
+      margin-top: 0.65rem;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      background: oklch(0.32 0.06 195);
+      color: var(--accent);
+      border-radius: 4px;
+      border: 1px solid var(--accent-dim);
+    }
+
+    nav.toc {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    nav.toc a {
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    nav.toc a:hover { color: var(--text); border-color: var(--accent-dim); }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    section.panel {
+      margin-bottom: 2.5rem;
+      padding: 1.5rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px var(--shadow);
+    }
+
+    section.panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    section.panel .section-desc {
+      margin: 0 0 1.25rem;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    .difficulty-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.15rem 0.45rem;
+      margin-right: 0.35rem;
+      border-radius: 4px;
+      background: oklch(0.28 0.04 260);
+      color: var(--warn);
+      vertical-align: middle;
+    }
+
+    /* ── #dynamic ─────────────────────────────────────────────────────── */
+    #dynamic-status {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    #dynamic-target {
+      min-height: 120px;
+      padding: 1rem;
+      background: var(--bg-panel);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      transition: border-color 0.3s;
+    }
+
+    #dynamic-target[data-phase="loading"] { border-color: var(--warn); }
+    #dynamic-target[data-phase="ready"] { border-color: var(--success); }
+
+    #dynamic-target table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    #dynamic-target th,
+    #dynamic-target td {
+      padding: 0.45rem 0.65rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #dynamic-target th { color: var(--accent); font-weight: 500; }
+
+    .dynamic-list { list-style: none; padding: 0; margin: 0; }
+    .dynamic-list li {
+      padding: 0.5rem 0.75rem;
+      border-left: 3px solid var(--accent-dim);
+      margin-bottom: 0.35rem;
+      background: oklch(0.22 0.03 258);
+    }
+
+    /* ── #shadow ──────────────────────────────────────────────────────── */
+    .shadow-hosts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    nested-login-open,
+    nested-login-closed {
+      display: block;
+      min-height: 200px;
+    }
+
+    /* ── #wizard ──────────────────────────────────────────────────────── */
+    .wizard-shell { max-width: 520px; }
+
+    .wizard-steps {
+      display: flex;
+      gap: 0.35rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .wizard-steps .step-indicator {
+      flex: 1;
+      padding: 0.4rem;
+      text-align: center;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .wizard-steps .step-indicator.is-active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: oklch(0.28 0.05 195);
+    }
+
+    .wizard-steps .step-indicator.is-done {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .wizard-pane { display: none; }
+    .wizard-pane.is-visible { display: block; }
+
+    .wizard-pane label {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .wizard-pane input[type="text"],
+    .wizard-pane input[type="email"] {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      margin-bottom: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-panel);
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .wizard-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+    }
+
+    .wizard-nav button {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .wizard-nav button.primary {
+      background: var(--accent);
+      color: oklch(0.15 0.02 260);
+      border-color: transparent;
+      font-weight: 600;
+    }
+
+    .wizard-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* CustomRegionSelect */
+    .custom-select {
+      position: relative;
+      margin-bottom: 0.85rem;
+    }
+
+    .custom-select__trigger {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-panel);
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .custom-select__list {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin: 4px 0 0;
+      padding: 0;
+      list-style: none;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      z-index: 50;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .custom-select.is-open .custom-select__list { display: block; }
+
+    .custom-select__list li {
+      padding: 0.5rem 0.7rem;
+      cursor: pointer;
+    }
+
+    .custom-select__list li:hover,
+    .custom-select__list li[aria-selected="true"] {
+      background: oklch(0.32 0.05 195);
+    }
+
+    /* PrioritySlider */
+    .priority-slider-wrap { margin-bottom: 0.85rem; }
+
+    .priority-slider-wrap input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .priority-label {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
+
+    /* AttachmentDropZone */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      text-align: center;
+      color: var(--text-muted);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .drop-zone.is-dragover {
+      border-color: var(--accent);
+      background: oklch(0.28 0.05 195 / 0.25);
+    }
+
+    .chip-tray {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      min-height: 2rem;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.55rem;
+      background: oklch(0.32 0.06 195);
+      border-radius: 999px;
+      font-size: 0.8rem;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .chip:active { cursor: grabbing; }
+
+    .chip button {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    /* ── #traps ───────────────────────────────────────────────────────── */
+    .trap-form-wrap {
+      max-width: 400px;
+      position: relative;
+    }
+
+    .trap-form-wrap input[type="text"],
+    .trap-form-wrap input[type="email"] {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      margin-bottom: 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-panel);
+      color: var(--text);
+    }
+
+    #trap-submit {
+      padding: 0.55rem 1.25rem;
+      border-radius: 6px;
+      border: none;
+      background: var(--danger);
+      color: oklch(0.98 0 0);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    #trap-feedback {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+    }
+
+    /* Honeypots — visually hidden but in DOM */
+    .hp-offscreen {
+      position: absolute;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    .hp-opacity {
+      opacity: 0;
+      position: absolute;
+      pointer-events: none;
+      height: 0;
+      width: 0;
+    }
+
+    .hp-clip {
+      position: absolute;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    /* ── #iframe ──────────────────────────────────────────────────────── */
+    #checkbox-iframe {
+      width: 100%;
+      min-height: 220px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-panel);
+    }
+
+    #iframe-log {
+      margin-top: 0.75rem;
+      padding: 0.65rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      background: var(--bg-panel);
+      border-radius: 6px;
+      max-height: 100px;
+      overflow-y: auto;
+      color: var(--text-muted);
+    }
+
+    /* ── Event log panel ──────────────────────────────────────────────── */
+  #event-log-panel {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: var(--bg-panel);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    #event-log-panel h3 {
+      margin: 0 0 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    #event-log {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      max-height: 160px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    #event-log li {
+      padding: 0.2rem 0;
+      border-bottom: 1px solid oklch(0.3 0.02 260);
+    }
+
+    .site-footer {
+      max-width: 1120px;
+      margin: 0 auto 3rem;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .site-footer code {
+      font-family: var(--font-mono);
+      background: var(--bg-panel);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    /* ── #choice (branching) ─────────────────────────────────────────── */
+    .choice-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .choice-result {
+      margin-top: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--accent-dim);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+    }
+    .choice-result[hidden] { display: none; }
+
+    /* ── #views (view switcher) ──────────────────────────────────────── */
+    .view-tabs {
+      display: flex;
+      gap: 0.25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+    .view-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.55rem 0.9rem;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .view-tab.is-active { color: var(--accent); border-bottom-color: var(--accent); }
+    .view-content {
+      min-height: 140px;
+      padding: 1rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .view-card { display: grid; gap: 0.75rem; }
+    .view-card .metric {
+      font-family: var(--font-mono);
+      font-size: 1.8rem;
+      color: var(--accent);
+    }
+
+    /* ── #modal-demo ──────────────────────────────────────────────────── */
+    .modal-result {
+      margin: 0.75rem 0 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: oklch(0.10 0.02 260 / 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.is-open { display: flex; }
+    .modal-dialog {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      min-width: 320px;
+      max-width: 420px;
+      box-shadow: 0 16px 48px var(--shadow);
+    }
+    .modal-dialog h3 { margin: 0 0 0.75rem; font-size: 1.1rem; }
+    .modal-dialog label {
+      display: block;
+      margin: 0.5rem 0 0.2rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .modal-dialog input,
+    .modal-dialog select {
+      width: 100%;
+      padding: 0.45rem 0.55rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font-sans);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      margin-top: 1rem;
+    }
+
+    /* ── #search ─────────────────────────────────────────────────────── */
+    #search-input {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+    }
+    .search-list { list-style: none; padding: 0; margin: 0; max-height: 220px; overflow: auto; }
+    .search-list li {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .search-list li:last-child { border-bottom: none; }
+    .search-empty { color: var(--text-muted); font-style: italic; }
+
+    /* ── #delayed ────────────────────────────────────────────────────── */
+    .delayed-area {
+      min-height: 80px;
+      margin-top: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg-panel);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+    .delayed-empty { margin: 0; color: var(--text-muted); font-style: italic; }
+    .delayed-spinner {
+      display: inline-block;
+      width: 1.1rem;
+      height: 1.1rem;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 800ms linear infinite;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .delayed-list { list-style: none; padding: 0; margin: 0; }
+    .delayed-list li {
+      padding: 0.4rem 0.6rem;
+      border-left: 3px solid var(--success);
+      background: oklch(0.22 0.03 258);
+      margin-bottom: 0.3rem;
+    }
+
+    /* ── #deep (below the fold) ──────────────────────────────────────── */
+    .deep-filler { height: 70vh; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner" style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.5rem 1rem;">
+      <div style="flex: 1 1 280px">
+        <h1>Codygo — DOM Automation Testbed</h1>
+        <p>
+          Intentionally hostile DOM patterns for browser automation, RPA, and agent evals.
+          A <strong>Worknet chat widget</strong> is embedded at the bottom of this page (do not rely on z-index alone).
+        </p>
+        <span class="badge">Worknet widget embedded</span>
+      </div>
+      <a href="/" style="margin-left: auto">← directory (hard nav)</a>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="Sections">
+    <a href="#dynamic">Dynamic</a>
+    <a href="#shadow">Shadow DOM</a>
+    <a href="#wizard">Wizard</a>
+    <a href="#traps">Traps</a>
+    <a href="#iframe">Iframe</a>
+    <a href="#choice">Branching</a>
+    <a href="#views">View switcher</a>
+    <a href="#modal-demo">Modal</a>
+    <a href="#search">Search</a>
+    <a href="#delayed">Delayed</a>
+    <a href="#deep">Deep</a>
+    <a href="#event-log-panel">Event log</a>
+  </nav>
+
+  <main>
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #dynamic
+         [DIFFICULTY:async] — content loads after random 1–4s delay
+         [DIFFICULTY:mutate] — root id/class rotates every 6s
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="dynamic" class="panel" aria-labelledby="dynamic-heading">
+      <h2 id="dynamic-heading">
+        <span class="difficulty-tag">[DIFFICULTY:async]</span>
+        <span class="difficulty-tag">[DIFFICULTY:mutate]</span>
+        Dynamic content
+      </h2>
+      <p class="section-desc">
+        Table or list renders after a random 1–4s delay. The mount node’s <code>id</code> and
+        <code>class</code> change every 6 seconds — stable selectors will break.
+      </p>
+      <div id="dynamic-status" role="status" aria-live="polite">Waiting for first load…</div>
+      <!-- [DIFFICULTY:mutate] — id/class on this node are rewritten by DomMutationScheduler -->
+      <div id="dynamic-target" class="dynamic-mount dynamic-mount--alpha" data-phase="loading">
+        <p style="color: var(--text-muted); margin: 0;">Loading async payload…</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #shadow
+         Web components with open vs closed shadow roots
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="shadow" class="panel" aria-labelledby="shadow-heading">
+      <h2 id="shadow-heading">Shadow DOM login shells</h2>
+      <p class="section-desc">
+        <code>nested-login-open</code> uses an open shadow root; <code>nested-login-closed</code>
+        uses closed. Both nest three levels of login forms inside shadow trees.
+      </p>
+      <div class="shadow-hosts">
+        <nested-login-open data-testid="login-open-host"></nested-login-open>
+        <nested-login-closed data-testid="login-closed-host"></nested-login-closed>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #wizard
+         4-step wizard — no URL/hash routing
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="wizard" class="panel" aria-labelledby="wizard-heading">
+      <h2 id="wizard-heading">Registration wizard</h2>
+      <p class="section-desc">
+        Four steps with no URL routing. Step 2 uses a custom <code>div+ul</code> region dropdown.
+        Step 3 has a priority range slider. Step 4 supports drag-and-drop file chips.
+      </p>
+      <div class="wizard-shell" id="registration-wizard">
+        <div class="wizard-steps" role="tablist" aria-label="Wizard progress">
+          <div class="step-indicator is-active" data-step="1">1 · Account</div>
+          <div class="step-indicator" data-step="2">2 · Region</div>
+          <div class="step-indicator" data-step="3">3 · Priority</div>
+          <div class="step-indicator" data-step="4">4 · Attachments</div>
+        </div>
+
+        <!-- Step 1 -->
+        <div class="wizard-pane is-visible" data-wizard-step="1">
+          <label for="wiz-username">Username</label>
+          <input type="text" id="wiz-username" name="username" autocomplete="username" />
+          <label for="wiz-email">Email</label>
+          <input type="email" id="wiz-email" name="email" autocomplete="email" />
+        </div>
+
+        <!-- Step 2 — CustomRegionSelect -->
+        <div class="wizard-pane" data-wizard-step="2">
+          <label id="region-label">Region</label>
+          <div id="region-select-root" class="custom-select" role="combobox" aria-labelledby="region-label" aria-expanded="false">
+            <button type="button" class="custom-select__trigger" id="region-trigger" aria-haspopup="listbox">
+              Select a region…
+            </button>
+            <ul class="custom-select__list" id="region-list" role="listbox" tabindex="-1">
+              <li role="option" data-value="us-east">US East</li>
+              <li role="option" data-value="us-west">US West</li>
+              <li role="option" data-value="eu-central">EU Central</li>
+              <li role="option" data-value="ap-south">AP South</li>
+            </ul>
+          </div>
+          <input type="hidden" id="wiz-region" name="region" value="" />
+        </div>
+
+        <!-- Step 3 — PrioritySlider -->
+        <div class="wizard-pane" data-wizard-step="3">
+          <label for="wiz-priority">Ticket priority</label>
+          <div class="priority-slider-wrap">
+            <input type="range" id="wiz-priority" name="priority" min="1" max="5" value="3" />
+            <span class="priority-label" id="priority-display">Priority: 3 — Normal</span>
+          </div>
+        </div>
+
+        <!-- Step 4 — AttachmentDropZone -->
+        <div class="wizard-pane" data-wizard-step="4">
+          <label>Attachments (drag files or chips)</label>
+          <div id="attachment-drop" class="drop-zone" tabindex="0">
+            Drop files here or drag chips between zones
+          </div>
+          <div id="chip-tray" class="chip-tray" aria-label="Attachment chips"></div>
+          <div id="chip-tray-secondary" class="chip-tray" aria-label="Secondary chip tray" style="margin-top: 0.5rem; border-top: 1px dashed var(--border); padding-top: 0.5rem;">
+            <span style="font-size: 0.75rem; color: var(--text-muted); width: 100%;">Secondary tray</span>
+          </div>
+        </div>
+
+        <div class="wizard-nav">
+          <button type="button" id="wizard-prev" disabled>Back</button>
+          <button type="button" id="wizard-next" class="primary">Next</button>
+        </div>
+        <p id="wizard-summary" style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); display: none;"></p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #traps
+         [DIFFICULTY:trap] — honeypots, moving submit, rate limit
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="traps" class="panel" aria-labelledby="traps-heading">
+      <h2 id="traps-heading">
+        <span class="difficulty-tag">[DIFFICULTY:trap]</span>
+        Bot traps
+      </h2>
+      <p class="section-desc">
+        Hidden honeypot fields (offscreen, opacity, clip). Submit button shifts on hover.
+        After submit, a 3-second rate limit blocks repeat submissions.
+      </p>
+      <div class="trap-form-wrap">
+        <form id="trap-form" novalidate>
+          <label for="trap-name">Display name</label>
+          <input type="text" id="trap-name" name="displayName" required />
+
+          <label for="trap-email">Contact email</label>
+          <input type="email" id="trap-email" name="contactEmail" required />
+
+          <!-- [DIFFICULTY:trap] honeypot: offscreen -->
+          <label class="hp-offscreen" for="trap-hp-url">Website URL</label>
+          <input class="hp-offscreen" type="text" id="trap-hp-url" name="url" tabindex="-1" autocomplete="off" />
+
+          <!-- [DIFFICULTY:trap] honeypot: opacity 0 -->
+          <input class="hp-opacity" type="text" name="fax" aria-hidden="true" tabindex="-1" />
+
+          <!-- [DIFFICULTY:trap] honeypot: clip rect -->
+          <input class="hp-clip" type="text" name="company_code" aria-hidden="true" tabindex="-1" />
+
+          <button type="submit" id="trap-submit">Submit feedback</button>
+        </form>
+        <div id="trap-feedback" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #iframe
+         [DIFFICULTY:iframe] — srcdoc + postMessage bridge
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="iframe" class="panel" aria-labelledby="iframe-heading">
+      <h2 id="iframe-heading">
+        <span class="difficulty-tag">[DIFFICULTY:iframe]</span>
+        Iframe checkbox panel
+      </h2>
+      <p class="section-desc">
+        <code>srcdoc</code> iframe with six checkboxes. Changes postMessage to the parent;
+        parent cannot read iframe DOM directly when cross-origin rules apply (same-origin here via srcdoc).
+      </p>
+      <iframe
+        id="checkbox-iframe"
+        title="Checkbox panel"
+        sandbox="allow-scripts allow-same-origin"
+      ></iframe>
+      <div id="iframe-log" aria-live="polite">No messages yet.</div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #choice
+         [DIFFICULTY:branching] — three paths, one sub-view at a time
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="choice" class="panel" aria-labelledby="choice-heading">
+      <h2 id="choice-heading">
+        <span class="difficulty-tag">[DIFFICULTY:branching]</span>
+        Branching choice
+      </h2>
+      <p class="section-desc">
+        Three paths. Picking one swaps the sub-view below. Exercises walkthrough branching via
+        <code>offer</code> quick replies or <code>callout</code> buttons.
+      </p>
+      <div class="choice-row" id="choice-buttons">
+        <button type="button" class="primary" data-choice="A" data-testid="choice-a">Path A — Quick tour</button>
+        <button type="button" class="primary" data-choice="B" data-testid="choice-b">Path B — Detailed walk</button>
+        <button type="button" class="primary" data-choice="C" data-testid="choice-c">Path C — Skip ahead</button>
+      </div>
+      <div id="choice-result" class="choice-result" data-testid="choice-result" aria-live="polite" hidden></div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #views
+         [DIFFICULTY:viewswap] — content area mutates, prior aids become stale
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="views" class="panel" aria-labelledby="views-heading">
+      <h2 id="views-heading">
+        <span class="difficulty-tag">[DIFFICULTY:viewswap]</span>
+        View switcher
+      </h2>
+      <p class="section-desc">
+        Tab bar swaps the visible content. Aids from the previous view become stale — the walkthrough
+        must re-observe (snapshot) after clicking a tab.
+      </p>
+      <div class="view-tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="true" data-view="dashboard" data-testid="view-dashboard-tab" class="view-tab is-active">Dashboard</button>
+        <button type="button" role="tab" aria-selected="false" data-view="settings" data-testid="view-settings-tab" class="view-tab">Settings</button>
+        <button type="button" role="tab" aria-selected="false" data-view="profile" data-testid="view-profile-tab" class="view-tab">Profile</button>
+      </div>
+      <div id="view-content" class="view-content" data-testid="view-content"></div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #modal-demo
+         [DIFFICULTY:modal] — overlay, focus trap, cues on portal content
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="modal-demo" class="panel" aria-labelledby="modal-heading">
+      <h2 id="modal-heading">
+        <span class="difficulty-tag">[DIFFICULTY:modal]</span>
+        Modal dialog
+      </h2>
+      <p class="section-desc">
+        Opens a centered overlay with form fields. Tests scrolling, cues on portal content, and the dismiss flow.
+      </p>
+      <button type="button" class="primary" id="modal-open" data-testid="modal-open">Open settings dialog</button>
+      <p id="modal-result" class="modal-result" aria-live="polite"></p>
+
+      <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-dialog-title">
+        <div class="modal-dialog">
+          <h3 id="modal-dialog-title">Settings</h3>
+          <label for="modal-name">Display name</label>
+          <input id="modal-name" type="text" data-testid="modal-name" placeholder="Your name" autocomplete="off" />
+          <label for="modal-theme">Theme</label>
+          <select id="modal-theme" data-testid="modal-theme">
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark" selected>Dark</option>
+          </select>
+          <div class="modal-actions">
+            <button type="button" data-modal-close data-testid="modal-cancel">Cancel</button>
+            <button type="button" class="primary" id="modal-save" data-testid="modal-save">Save</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #search
+         [DIFFICULTY:filter] — list aids change as filter narrows
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="search" class="panel" aria-labelledby="search-heading">
+      <h2 id="search-heading">
+        <span class="difficulty-tag">[DIFFICULTY:filter]</span>
+        Search / filter list
+      </h2>
+      <p class="section-desc">
+        Type to filter the list. Items appear and disappear, and per-item aids reshape with input —
+        a walkthrough that targets a specific row must re-observe after the filter changes.
+      </p>
+      <input type="search" id="search-input" data-testid="search-input" placeholder="Filter items…" autocomplete="off" />
+      <ul id="search-list" class="search-list" data-testid="search-list"></ul>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #delayed
+         [DIFFICULTY:async-load] — explicit wait pattern (content arrives ~2s after click)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section id="delayed" class="panel" aria-labelledby="delayed-heading">
+      <h2 id="delayed-heading">
+        <span class="difficulty-tag">[DIFFICULTY:async-load]</span>
+        Delayed content
+      </h2>
+      <p class="section-desc">
+        Click <em>Load report</em> to fetch (simulated 2s). A spinner shows during load; content replaces it on completion.
+        A walkthrough should use <code>wait</code> for the spinner to disappear before cueing the loaded items.
+      </p>
+      <button type="button" class="primary" id="delayed-load" data-testid="delayed-load">Load report</button>
+      <div id="delayed-area" class="delayed-area" data-testid="delayed-area" aria-live="polite">
+        <p class="delayed-empty">No report loaded yet.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION: #deep
+         [DIFFICULTY:scroll] — target sits far below the fold; cue must scroll
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="deep-filler" aria-hidden="true"></div>
+    <section id="deep" class="panel" aria-labelledby="deep-heading">
+      <h2 id="deep-heading">
+        <span class="difficulty-tag">[DIFFICULTY:scroll]</span>
+        Below the fold
+      </h2>
+      <p class="section-desc">
+        This section sits far below the initial viewport on purpose. Cueing the button here without
+        auto-scroll leaves the user staring at empty space above.
+      </p>
+      <button type="button" class="primary" id="deep-button" data-testid="deep-button">Far-down button</button>
+      <p id="deep-result" data-testid="deep-result" aria-live="polite"></p>
+    </section>
+
+    <div id="event-log-panel">
+      <h3>Event logger (last 50)</h3>
+      <ul id="event-log" aria-live="polite"></ul>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Run <code>npm run dev</code> from the widget-harness root, then open
+      <code>/i-dom-automation</code>. Widget config comes from
+      <code>public/widget-runtime.json</code> or <code>?wk=</code> query params.
+    </p>
+  </footer>
+
+  <script>
+    /* =============================================================================
+       MODULE: EventLogger
+       Central append-only log for automation debugging.
+       ============================================================================= */
+    const EventLogger = (() => {
+      const MAX = 50;
+      const listEl = () => document.getElementById('event-log');
+
+      function log(category, detail) {
+        const list = listEl();
+        if (!list) return;
+        const ts = new Date().toISOString().slice(11, 23);
+        const li = document.createElement('li');
+        li.textContent = `[${ts}] ${category}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`;
+        list.prepend(li);
+        while (list.children.length > MAX) {
+          list.removeChild(list.lastChild);
+        }
+      }
+
+      return { log };
+    })();
+
+    /* =============================================================================
+       MODULE: AsyncContentLoader
+       [DIFFICULTY:async] — fetches simulated payload after random 1–4s delay
+       ============================================================================= */
+    const AsyncContentLoader = (() => {
+      const ROWS = [
+        { id: 'A-101', label: 'Alpha queue', status: 'active' },
+        { id: 'B-204', label: 'Beta shard', status: 'idle' },
+        { id: 'C-309', label: 'Gamma worker', status: 'busy' },
+        { id: 'D-412', label: 'Delta cache', status: 'active' },
+      ];
+
+      function randomDelayMs() {
+        return 1000 + Math.floor(Math.random() * 3000);
+      }
+
+      function fetchPayload() {
+        return new Promise((resolve) => {
+          const delay = randomDelayMs();
+          setTimeout(() => {
+            const useTable = Math.random() > 0.4;
+            resolve({ delay, useTable, rows: ROWS, loadedAt: Date.now() });
+          }, delay);
+        });
+      }
+
+      function renderTable(container, rows) {
+        const table = document.createElement('table');
+        table.setAttribute('data-render', 'table');
+        table.innerHTML = `
+          <thead><tr><th>ID</th><th>Label</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        `;
+        const tbody = table.querySelector('tbody');
+        rows.forEach((r) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${r.id}</td><td>${r.label}</td><td>${r.status}</td>`;
+          tbody.appendChild(tr);
+        });
+        container.replaceChildren(table);
+      }
+
+      function renderList(container, rows) {
+        const ul = document.createElement('ul');
+        ul.className = 'dynamic-list';
+        ul.setAttribute('data-render', 'list');
+        rows.forEach((r) => {
+          const li = document.createElement('li');
+          li.textContent = `${r.id} · ${r.label} (${r.status})`;
+          ul.appendChild(li);
+        });
+        container.replaceChildren(ul);
+      }
+
+      async function loadInto(container, statusEl) {
+        container.dataset.phase = 'loading';
+        statusEl.textContent = '[DIFFICULTY:async] Loading… (random 1–4s)';
+        EventLogger.log('async', 'load started');
+
+        const payload = await fetchPayload();
+        if (payload.useTable) {
+          renderTable(container, payload.rows);
+        } else {
+          renderList(container, payload.rows);
+        }
+        container.dataset.phase = 'ready';
+        statusEl.textContent = `[DIFFICULTY:async] Ready in ${payload.delay}ms · ${payload.useTable ? 'table' : 'list'} · ${new Date(payload.loadedAt).toLocaleTimeString()}`;
+        EventLogger.log('async', { delay: payload.delay, mode: payload.useTable ? 'table' : 'list' });
+        return payload;
+      }
+
+      return { loadInto, fetchPayload, randomDelayMs };
+    })();
+
+    /* =============================================================================
+       MODULE: DomMutationScheduler
+       [DIFFICULTY:mutate] — rewrites id + class on #dynamic-target every 6s
+       ============================================================================= */
+    const DomMutationScheduler = (() => {
+      const VARIANTS = [
+        { id: 'dynamic-target', className: 'dynamic-mount dynamic-mount--alpha' },
+        { id: 'dyn-root-v2', className: 'dynamic-mount dynamic-mount--beta' },
+        { id: 'async-surface-3', className: 'dynamic-mount dynamic-mount--gamma' },
+        { id: 'mutable-host-4', className: 'dynamic-mount dynamic-mount--delta' },
+      ];
+      let index = 0;
+
+      function applyNext(target) {
+        index = (index + 1) % VARIANTS.length;
+        const next = VARIANTS[index];
+        target.id = next.id;
+        target.className = next.className;
+        target.setAttribute('data-mutation-generation', String(index));
+        EventLogger.log('mutate', { id: next.id, class: next.className });
+      }
+
+      function start(target, intervalMs = 6000) {
+        EventLogger.log('mutate', 'scheduler started (6s interval)');
+        return setInterval(() => applyNext(target), intervalMs);
+      }
+
+      return { start, applyNext, VARIANTS };
+    })();
+
+    /* =============================================================================
+       Shadow DOM web components — nested login forms (3 levels deep)
+       ============================================================================= */
+    function buildLoginForm(level, depth) {
+      const form = document.createElement('form');
+      form.setAttribute('data-level', String(level));
+      form.innerHTML = `
+        <fieldset style="border:1px solid oklch(0.4 0.04 258); border-radius:8px; padding:0.75rem; margin:0.5rem 0; font-family:IBM Plex Sans,sans-serif; font-size:13px;">
+          <legend style="color:oklch(0.72 0.16 195); padding:0 0.35rem;">Login L${level}</legend>
+          <label style="display:block;color:oklch(0.72 0.02 260);margin-bottom:0.25rem;">User</label>
+          <input name="user_L${level}" type="text" style="width:100%;padding:0.4rem;margin-bottom:0.5rem;border-radius:4px;border:1px solid oklch(0.35 0.04 258);background:oklch(0.2 0.02 260);color:oklch(0.93 0.01 260);" />
+          <label style="display:block;color:oklch(0.72 0.02 260);margin-bottom:0.25rem;">Pass</label>
+          <input name="pass_L${level}" type="password" style="width:100%;padding:0.4rem;margin-bottom:0.5rem;border-radius:4px;border:1px solid oklch(0.35 0.04 258);background:oklch(0.2 0.02 260);color:oklch(0.93 0.01 260);" />
+          <button type="button" data-action="login" style="padding:0.35rem 0.75rem;border-radius:4px;border:none;background:oklch(0.55 0.12 195);color:oklch(0.15 0.02 260);cursor:pointer;">Sign in L${level}</button>
+        </fieldset>
+      `;
+      if (level < depth) {
+        const inner = document.createElement('div');
+        inner.setAttribute('data-nest', String(level + 1));
+        form.appendChild(inner);
+        return { form, innerHost: inner };
+      }
+      return { form, innerHost: null };
+    }
+
+    function mountNestedLogins(host, mode) {
+      const root = host.attachShadow({ mode });
+      root.innerHTML = `<style>:host{display:block;padding:0.75rem;background:oklch(0.2 0.025 258);border-radius:8px;border:1px solid oklch(0.35 0.04 258);}</style>`;
+      const title = document.createElement('p');
+      title.textContent = mode === 'open' ? 'Open shadow root' : 'Closed shadow root';
+      title.style.cssText = 'margin:0 0 0.5rem;font-size:12px;color:oklch(0.72 0.02 260);';
+      root.appendChild(title);
+
+      let container = root;
+      for (let level = 1; level <= 3; level++) {
+        const { form, innerHost } = buildLoginForm(level, 3);
+        container.appendChild(form);
+        if (innerHost) {
+          const innerRoot = innerHost.attachShadow({ mode });
+          container = innerRoot;
+        }
+      }
+    }
+
+    class NestedLoginOpen extends HTMLElement {
+      connectedCallback() {
+        if (!this.shadowRoot) mountNestedLogins(this, 'open');
+      }
+    }
+
+    class NestedLoginClosed extends HTMLElement {
+      #mounted = false;
+      connectedCallback() {
+        if (this.#mounted) return;
+        this.#mounted = true;
+        mountNestedLogins(this, 'closed');
+      }
+    }
+
+    customElements.define('nested-login-open', NestedLoginOpen);
+    customElements.define('nested-login-closed', NestedLoginClosed);
+
+    /* =============================================================================
+       MODULE: CustomRegionSelect
+       Custom div + ul dropdown (not a native select)
+       ============================================================================= */
+    const CustomRegionSelect = (() => {
+      function init(root) {
+        const trigger = root.querySelector('.custom-select__trigger');
+        const list = root.querySelector('.custom-select__list');
+        const hidden = document.getElementById('wiz-region');
+        const options = list.querySelectorAll('[role="option"]');
+
+        function close() {
+          root.classList.remove('is-open');
+          root.setAttribute('aria-expanded', 'false');
+        }
+
+        function open() {
+          root.classList.add('is-open');
+          root.setAttribute('aria-expanded', 'true');
+        }
+
+        function selectOption(li) {
+          options.forEach((o) => o.setAttribute('aria-selected', 'false'));
+          li.setAttribute('aria-selected', 'true');
+          trigger.textContent = li.textContent;
+          hidden.value = li.dataset.value;
+          close();
+          EventLogger.log('wizard', { region: li.dataset.value });
+        }
+
+        trigger.addEventListener('click', () => {
+          root.classList.contains('is-open') ? close() : open();
+        });
+
+        options.forEach((li) => {
+          li.addEventListener('click', () => selectOption(li));
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!root.contains(e.target)) close();
+        });
+
+        return { getValue: () => hidden.value };
+      }
+
+      return { init };
+    })();
+
+    /* =============================================================================
+       MODULE: PrioritySlider
+       Range input with live label mapping
+       ============================================================================= */
+    const PrioritySlider = (() => {
+      const LABELS = {
+        1: '1 — Low',
+        2: '2 — Below normal',
+        3: '3 — Normal',
+        4: '4 — High',
+        5: '5 — Critical',
+      };
+
+      function init(input, display) {
+        function update() {
+          const v = input.value;
+          display.textContent = `Priority: ${LABELS[v] || v}`;
+        }
+        input.addEventListener('input', update);
+        update();
+        return { getValue: () => Number(input.value) };
+      }
+
+      return { init, LABELS };
+    })();
+
+    /* =============================================================================
+       MODULE: AttachmentDropZone
+       Drag-drop files and reorderable chips between trays
+       ============================================================================= */
+    const AttachmentDropZone = (() => {
+      let chipId = 0;
+
+      function createChip(name) {
+        const id = `chip-${++chipId}`;
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.draggable = true;
+        chip.dataset.chipId = id;
+        chip.innerHTML = `<span>${name}</span><button type="button" aria-label="Remove ${name}">×</button>`;
+        chip.querySelector('button').addEventListener('click', () => {
+          chip.remove();
+          EventLogger.log('wizard', { chipRemoved: name });
+        });
+        chip.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', id);
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        return chip;
+      }
+
+      function initDropZone(zoneEl, trayEl) {
+        zoneEl.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          zoneEl.classList.add('is-dragover');
+        });
+        zoneEl.addEventListener('dragleave', () => zoneEl.classList.remove('is-dragover'));
+        zoneEl.addEventListener('drop', (e) => {
+          e.preventDefault();
+          zoneEl.classList.remove('is-dragover');
+          const files = e.dataTransfer.files;
+          if (files.length) {
+            Array.from(files).forEach((f) => {
+              trayEl.appendChild(createChip(f.name));
+            });
+            EventLogger.log('wizard', { filesDropped: files.length });
+          }
+        });
+
+        trayEl.addEventListener('dragover', (e) => e.preventDefault());
+        trayEl.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const id = e.dataTransfer.getData('text/plain');
+          const chip = document.querySelector(`[data-chip-id="${id}"]`);
+          if (chip) trayEl.appendChild(chip);
+        });
+      }
+
+      function seedChips(tray) {
+        ['brief.pdf', 'screenshot.png'].forEach((n) => tray.appendChild(createChip(n)));
+      }
+
+      return { initDropZone, seedChips, createChip };
+    })();
+
+    /* =============================================================================
+       MODULE: RegistrationWizard
+       4-step wizard — no URL / hash routing
+       ============================================================================= */
+    const RegistrationWizard = (() => {
+      const TOTAL = 4;
+
+      function init(shell, regionSelect, prioritySlider) {
+        let step = 1;
+        const panes = shell.querySelectorAll('.wizard-pane');
+        const indicators = shell.querySelectorAll('.step-indicator');
+        const btnPrev = document.getElementById('wizard-prev');
+        const btnNext = document.getElementById('wizard-next');
+        const summary = document.getElementById('wizard-summary');
+
+        function render() {
+          panes.forEach((p) => {
+            p.classList.toggle('is-visible', Number(p.dataset.wizardStep) === step);
+          });
+          indicators.forEach((ind) => {
+            const n = Number(ind.dataset.step);
+            ind.classList.toggle('is-active', n === step);
+            ind.classList.toggle('is-done', n < step);
+          });
+          btnPrev.disabled = step === 1;
+          btnNext.textContent = step === TOTAL ? 'Finish' : 'Next';
+        }
+
+        btnPrev.addEventListener('click', () => {
+          if (step > 1) {
+            step--;
+            render();
+            EventLogger.log('wizard', { step, dir: 'back' });
+          }
+        });
+
+        btnNext.addEventListener('click', () => {
+          if (step < TOTAL) {
+            step++;
+            render();
+            EventLogger.log('wizard', { step, dir: 'next' });
+          } else {
+            summary.style.display = 'block';
+            summary.textContent = `Registered: ${document.getElementById('wiz-username').value || '(no user)'} · region=${regionSelect.getValue()} · priority=${prioritySlider.getValue()}`;
+            btnNext.disabled = true;
+            EventLogger.log('wizard', 'completed');
+          }
+        });
+
+        render();
+        return { getStep: () => step };
+      }
+
+      return { init, TOTAL };
+    })();
+
+    /* =============================================================================
+       MODULE: BotTrapForm
+       [DIFFICULTY:trap] — honeypots, hover-shift submit, 3s rate limit
+       ============================================================================= */
+    const BotTrapForm = (() => {
+      const RATE_LIMIT_MS = 3000;
+      let lockedUntil = 0;
+
+      function init(form, submitBtn, feedbackEl) {
+        submitBtn.addEventListener('mouseenter', () => {
+          const dx = (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 80);
+          const dy = (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 30);
+          submitBtn.style.transform = `translate(${dx}px, ${dy}px)`;
+        });
+
+        submitBtn.addEventListener('mouseleave', () => {
+          submitBtn.style.transform = '';
+        });
+
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const now = Date.now();
+
+          if (now < lockedUntil) {
+            const remain = Math.ceil((lockedUntil - now) / 1000);
+            feedbackEl.textContent = `[DIFFICULTY:trap] Rate limited — wait ${remain}s`;
+            feedbackEl.style.color = 'var(--warn)';
+            EventLogger.log('trap', 'rate limited');
+            return;
+          }
+
+          const hpUrl = form.querySelector('[name="url"]');
+          const hpFax = form.querySelector('[name="fax"]');
+          const hpCode = form.querySelector('[name="company_code"]');
+
+          if ((hpUrl && hpUrl.value) || (hpFax && hpFax.value) || (hpCode && hpCode.value)) {
+            feedbackEl.textContent = '[DIFFICULTY:trap] Honeypot triggered — submission rejected';
+            feedbackEl.style.color = 'var(--danger)';
+            EventLogger.log('trap', 'honeypot');
+            return;
+          }
+
+          lockedUntil = now + RATE_LIMIT_MS;
+          submitBtn.disabled = true;
+          feedbackEl.textContent = `[DIFFICULTY:trap] Accepted — rate limit ${RATE_LIMIT_MS / 1000}s`;
+          feedbackEl.style.color = 'var(--success)';
+          EventLogger.log('trap', 'accepted');
+
+          setTimeout(() => {
+            submitBtn.disabled = false;
+            feedbackEl.textContent += ' (submit re-enabled)';
+          }, RATE_LIMIT_MS);
+        });
+      }
+
+      return { init, RATE_LIMIT_MS };
+    })();
+
+    /* =============================================================================
+       MODULE: IframeCheckboxPanel
+       [DIFFICULTY:iframe] — srcdoc iframe + postMessage to parent
+       ============================================================================= */
+    const IframeCheckboxPanel = (() => {
+      const CHECKBOX_COUNT = 6;
+
+      function buildSrcdoc() {
+        const items = Array.from({ length: CHECKBOX_COUNT }, (_, i) => {
+          const n = i + 1;
+          return `
+            <label style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;color:#e2e8f0;font-family:IBM Plex Sans,sans-serif;font-size:14px;">
+              <input type="checkbox" id="cb-${n}" data-index="${n}" />
+              Option ${n}
+            </label>
+          `;
+        }).join('');
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><style>
+  body{margin:0;padding:1rem;background:#1a1f2e;font-family:IBM Plex Sans,sans-serif;}
+  h2{font-size:14px;margin:0 0 0.75rem;color:#5eead4;}
+</style></head>
+<body>
+  <h2>Iframe checkboxes</h2>
+  <form id="cb-form">${items}</form>
+  <script>
+    const form = document.getElementById('cb-form');
+    function emit() {
+      const checked = Array.from(form.querySelectorAll('input:checked')).map(el => Number(el.dataset.index));
+      parent.postMessage({ source: 'checkbox-iframe', type: 'checkbox-change', checked, at: Date.now() }, '*');
+    }
+    form.addEventListener('change', emit);
+    emit();
+  <\/script>
+</body>
+</html>`;
+      }
+
+      function init(iframeEl, logEl) {
+        iframeEl.srcdoc = buildSrcdoc();
+
+        window.addEventListener('message', (event) => {
+          const data = event.data;
+          if (!data || data.source !== 'checkbox-iframe') return;
+          const msg = `[DIFFICULTY:iframe] checked=[${(data.checked || []).join(', ')}] @ ${new Date(data.at).toLocaleTimeString()}`;
+          logEl.textContent = msg;
+          EventLogger.log('iframe', data);
+        });
+      }
+
+      return { init, buildSrcdoc, CHECKBOX_COUNT };
+    })();
+
+    /* =============================================================================
+       Bootstrap — wire all modules on DOMContentLoaded
+       ============================================================================= */
+    document.addEventListener('DOMContentLoaded', () => {
+      EventLogger.log('boot', 'DOM Automation Testbed ready');
+
+      const dynamicTarget = document.getElementById('dynamic-target');
+      const dynamicStatus = document.getElementById('dynamic-status');
+
+      AsyncContentLoader.loadInto(dynamicTarget, dynamicStatus).then(() => {
+        setInterval(() => {
+          AsyncContentLoader.loadInto(dynamicTarget, dynamicStatus);
+        }, 15000);
+      });
+
+      DomMutationScheduler.start(dynamicTarget, 6000);
+
+      const regionRoot = document.getElementById('region-select-root');
+      const regionSelect = CustomRegionSelect.init(regionRoot);
+      const priority = PrioritySlider.init(
+        document.getElementById('wiz-priority'),
+        document.getElementById('priority-display')
+      );
+
+      const chipTray = document.getElementById('chip-tray');
+      const chipTray2 = document.getElementById('chip-tray-secondary');
+      AttachmentDropZone.initDropZone(document.getElementById('attachment-drop'), chipTray);
+      AttachmentDropZone.initDropZone(document.getElementById('attachment-drop'), chipTray2);
+      AttachmentDropZone.seedChips(chipTray);
+
+      RegistrationWizard.init(
+        document.getElementById('registration-wizard'),
+        regionSelect,
+        priority
+      );
+
+      BotTrapForm.init(
+        document.getElementById('trap-form'),
+        document.getElementById('trap-submit'),
+        document.getElementById('trap-feedback')
+      );
+
+      IframeCheckboxPanel.init(
+        document.getElementById('checkbox-iframe'),
+        document.getElementById('iframe-log')
+      );
+    });
+  </script>
+
+  <!-- Walkthrough test scenarios — init -->
+  <script>
+    (function () {
+      function initChoice() {
+        const buttons = document.querySelectorAll('#choice-buttons button[data-choice]');
+        const result = document.getElementById('choice-result');
+        if (!result) return;
+        const messages = {
+          A: 'Path A — Quick tour. The walkthrough should now point at the first section.',
+          B: 'Path B — Detailed walk. Each section gets a callout with full description.',
+          C: 'Path C — Skip ahead. Jump straight to the final summary.'
+        };
+        buttons.forEach(function (b) {
+          b.addEventListener('click', function () {
+            const choice = b.getAttribute('data-choice');
+            result.hidden = false;
+            result.textContent = messages[choice] || 'Unknown path.';
+            result.setAttribute('data-chosen', choice || '');
+          });
+        });
+      }
+
+      function initViews() {
+        const tabs = document.querySelectorAll('.view-tab');
+        const content = document.getElementById('view-content');
+        if (!content) return;
+        const views = {
+          dashboard: {
+            html:
+              '<div class="view-card">' +
+              '<div class="metric" data-testid="dashboard-metric">42</div>' +
+              '<button type="button" class="primary" id="dashboard-refresh" data-testid="dashboard-refresh">Refresh</button>' +
+              '</div>',
+            init: function (node) {
+              const btn = node.querySelector('#dashboard-refresh');
+              const metric = node.querySelector('[data-testid="dashboard-metric"]');
+              if (btn && metric) {
+                btn.addEventListener('click', function () {
+                  metric.textContent = String(Math.floor(Math.random() * 99) + 1);
+                });
+              }
+            }
+          },
+          settings: {
+            html:
+              '<div class="view-card">' +
+              '<label><input type="checkbox" id="settings-notify" data-testid="settings-notify"> Enable notifications</label>' +
+              '<button type="button" class="primary" id="settings-save" data-testid="settings-save">Save settings</button>' +
+              '<p id="settings-status" data-testid="settings-status" aria-live="polite"></p>' +
+              '</div>',
+            init: function (node) {
+              const save = node.querySelector('#settings-save');
+              const status = node.querySelector('#settings-status');
+              if (save && status) {
+                save.addEventListener('click', function () {
+                  status.textContent = 'Settings saved.';
+                });
+              }
+            }
+          },
+          profile: {
+            html:
+              '<div class="view-card">' +
+              '<label>Display name<input type="text" id="profile-name" data-testid="profile-name" placeholder="Your name" autocomplete="off"></label>' +
+              '<button type="button" class="primary" id="profile-save" data-testid="profile-save">Save profile</button>' +
+              '<p id="profile-status" data-testid="profile-status" aria-live="polite"></p>' +
+              '</div>',
+            init: function (node) {
+              const save = node.querySelector('#profile-save');
+              const status = node.querySelector('#profile-status');
+              const input = node.querySelector('#profile-name');
+              if (save && status && input) {
+                save.addEventListener('click', function () {
+                  status.textContent = input.value
+                    ? 'Profile saved for ' + input.value + '.'
+                    : 'Profile saved.';
+                });
+              }
+            }
+          }
+        };
+        function render(viewKey) {
+          const v = views[viewKey];
+          if (!v) return;
+          content.innerHTML = v.html;
+          v.init(content);
+          tabs.forEach(function (t) {
+            const active = t.getAttribute('data-view') === viewKey;
+            t.classList.toggle('is-active', active);
+            t.setAttribute('aria-selected', active ? 'true' : 'false');
+          });
+        }
+        tabs.forEach(function (t) {
+          t.addEventListener('click', function () {
+            render(t.getAttribute('data-view'));
+          });
+        });
+        render('dashboard');
+      }
+
+      function initModal() {
+        const openBtn = document.getElementById('modal-open');
+        const overlay = document.getElementById('settings-modal');
+        const result = document.getElementById('modal-result');
+        if (!openBtn || !overlay) return;
+        const closeBtns = overlay.querySelectorAll('[data-modal-close]');
+        const saveBtn = overlay.querySelector('#modal-save');
+        function open() {
+          overlay.classList.add('is-open');
+          const firstField = overlay.querySelector('input, select');
+          if (firstField) firstField.focus();
+        }
+        function close() { overlay.classList.remove('is-open'); }
+        openBtn.addEventListener('click', open);
+        closeBtns.forEach(function (b) { b.addEventListener('click', close); });
+        overlay.addEventListener('click', function (e) {
+          if (e.target === overlay) close();
+        });
+        if (saveBtn && result) {
+          saveBtn.addEventListener('click', function () {
+            const nameInput = overlay.querySelector('#modal-name');
+            const themeSelect = overlay.querySelector('#modal-theme');
+            const name = (nameInput && nameInput.value) || '(unnamed)';
+            const theme = themeSelect ? themeSelect.value : 'auto';
+            result.textContent = 'Saved: ' + name + ' / ' + theme;
+            close();
+          });
+        }
+      }
+
+      function initSearch() {
+        const input = document.getElementById('search-input');
+        const list = document.getElementById('search-list');
+        if (!input || !list) return;
+        const items = [
+          'Acme Corp', 'Bermuda Holdings', 'Cinder Block Ltd',
+          'Drift Industries', 'Echo Foundry', 'Fennel & Sage',
+          'Globex Networks', 'Hyperion Labs', 'Ironwood Capital',
+          'Jasper Studios', 'Kestrel Aerospace', 'Lumen Health'
+        ];
+        function escapeAttr(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+        function render(q) {
+          const needle = q.trim().toLowerCase();
+          const matches = needle ? items.filter(function (s) { return s.toLowerCase().includes(needle); }) : items;
+          if (matches.length === 0) {
+            list.innerHTML = '<li class="search-empty">No matches.</li>';
+            return;
+          }
+          list.innerHTML = matches.map(function (s, i) {
+            return '<li data-testid="search-item-' + i + '"><span>' + s + '</span>' +
+              '<button type="button" class="primary" data-pick="' + escapeAttr(s) + '">Pick</button></li>';
+          }).join('');
+        }
+        input.addEventListener('input', function (e) { render(e.target.value); });
+        list.addEventListener('click', function (e) {
+          const btn = e.target.closest && e.target.closest('[data-pick]');
+          if (!btn) return;
+          input.value = btn.getAttribute('data-pick') || '';
+          render(input.value);
+        });
+        render('');
+      }
+
+      function initDelayed() {
+        const btn = document.getElementById('delayed-load');
+        const area = document.getElementById('delayed-area');
+        if (!btn || !area) return;
+        btn.addEventListener('click', function () {
+          btn.disabled = true;
+          area.innerHTML =
+            '<p data-testid="delayed-spinner"><span class="delayed-spinner" aria-hidden="true"></span>Loading report…</p>';
+          window.setTimeout(function () {
+            area.innerHTML =
+              '<ul class="delayed-list" data-testid="delayed-list">' +
+              '<li data-testid="delayed-item-1">Q1 — 14,302 events</li>' +
+              '<li data-testid="delayed-item-2">Q2 — 17,455 events</li>' +
+              '<li data-testid="delayed-item-3">Q3 — 19,108 events</li>' +
+              '<li data-testid="delayed-item-4">Q4 — 22,991 events</li>' +
+              '</ul>';
+            btn.disabled = false;
+            btn.textContent = 'Reload report';
+          }, 2200);
+        });
+      }
+
+      function initDeep() {
+        const btn = document.getElementById('deep-button');
+        const result = document.getElementById('deep-result');
+        if (!btn || !result) return;
+        btn.addEventListener('click', function () {
+          result.textContent = 'You found the deep button.';
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        initChoice();
+        initViews();
+        initModal();
+        initSearch();
+        initDelayed();
+        initDeep();
+      });
+    })();
+  </script>
+
+  <script>
+    window.__wnHarness = { section: { id: 'I', label: 'I · DOM automation testbed' } };
+  </script>
+  <script src="/shared/nav-probe.js"></script>
+  <script src="/shared/expected.js"></script>
+  <script src="/shared/embed-bootstrap.js"></script>
+</body>
+</html>

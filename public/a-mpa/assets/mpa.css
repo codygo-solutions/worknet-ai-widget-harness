@@ -1,0 +1,57 @@
+/* Plain server-rendered look — deliberately nothing like the worknet DS. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  color: #222;
+  background: #fff;
+  line-height: 1.6;
+}
+.site-header {
+  background: #14213d;
+  color: #fff;
+  padding: 14px 0;
+}
+.site-header .bar {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.brand { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.02em; }
+nav a {
+  color: #fff;
+  margin-left: 18px;
+  text-decoration: none;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.95rem;
+}
+nav a:hover { text-decoration: underline; }
+main { max-width: 760px; margin: 36px auto; padding: 0 20px; }
+h1 { font-size: 2rem; margin-top: 0; }
+.kicker {
+  font-family: Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  color: #8a5a00;
+}
+.callout {
+  border-left: 4px solid #14213d;
+  background: #f4f6fb;
+  padding: 12px 16px;
+  font-family: Arial, sans-serif;
+  font-size: 0.9rem;
+  margin: 24px 0;
+}
+footer {
+  border-top: 1px solid #ddd;
+  margin-top: 48px;
+  padding: 18px 20px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  font-size: 0.8rem;
+  color: #777;
+}

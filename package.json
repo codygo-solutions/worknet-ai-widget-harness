@@ -1,0 +1,31 @@
+{
+  "name": "widget-harness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone tenant-site simulator that embeds the real chat/AI widget across customer navigation archetypes. Zero coupling to the surrounding monorepo — liftable to its own repo unedited.",
+  "scripts": {
+    "dev": "next dev -p ${WN_WIDGET_HARNESS_PORT:-5176}",
+    "build": "next build",
+    "start": "next start -p ${WN_WIDGET_HARNESS_PORT:-5176}",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "build:bundles": "npm --prefix _bundle-src install --no-audit --no-fund && npm --prefix _bundle-src run build",
+    "verify": "node scripts/verify-isolation.mjs && node scripts/verify-no-next-fingerprints.mjs",
+    "predev": "node scripts/gen-runtime-config.mjs"
+  },
+  "dependencies": {
+    "next": "15.5.18",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "15.5.18",
+    "@types/node": "22.10.5",
+    "@types/react": "19.0.7",
+    "@types/react-dom": "19.0.3",
+    "eslint": "9.18.0",
+    "eslint-plugin-react-hooks": "5.1.0",
+    "typescript": "5.7.3",
+    "typescript-eslint": "8.20.0"
+  }
+}

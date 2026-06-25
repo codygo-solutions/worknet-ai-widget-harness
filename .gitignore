@@ -1,0 +1,16 @@
+# widget-harness is a standalone island — its own ignore set, no reliance on the
+# monorepo root .gitignore (so it stays correct when lifted to its own repo).
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.eslintcache
+
+# The only environment-specific file. widget-runtime.example.json is committed;
+# the live one (real wk_ key + local URLs) is per-developer and never committed.
+public/widget-runtime.json
+
+# Second isolated npm project's install artifacts (its build output under
+# public/b1-spa, public/b2-spa IS committed — see _bundle-src/README).
+_bundle-src/node_modules/
+_bundle-src/dist/

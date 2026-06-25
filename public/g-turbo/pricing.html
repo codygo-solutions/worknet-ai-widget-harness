@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content="WordPress 6.5.2" />
+    <meta name="turbo-cache-control" content="no-preview" />
+    <link rel="stylesheet" href="/a-mpa/assets/mpa.css" />
+    <link
+      rel="stylesheet"
+      href="/g-turbo/wp-content/themes/acme/style.css?ver=6.5.2"
+    />
+    <title>Acme Turbo — Pricing</title>
+  </head>
+  <body class="page wp-singular" data-turbo="true">
+    <header class="site-header">
+      <div class="bar">
+        <span class="brand">ACME (Turbo)</span>
+        <nav>
+          <a href="/g-turbo">Home</a>
+          <a href="/g-turbo/about">About</a>
+          <a href="/g-turbo/pricing">Pricing</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="turbo-content" data-turbo-frame="_top">
+      <p class="kicker">Turbo · MPA-as-soft-nav</p>
+      <h1>Pricing (swapped, not reloaded)</h1>
+      <p>
+        Compare with <a href="/a-mpa/pricing">/a-mpa/pricing</a> — visually and
+        header-wise near-identical, but that one is a true reload (journey ✓)
+        and this one soft-navs (journey ✗ now). Same-looking sites, opposite
+        widget behaviour.
+      </p>
+    </main>
+    <footer>© Acme — "WordPress" (actually Turbo over nginx)</footer>
+
+    <script>
+      window.__wnHarness = { section: { id: 'G', label: 'G · Turbo (MPA-shaped soft-nav)' } };
+    </script>
+    <script src="/shared/nav-probe.js"></script>
+    <script src="/shared/expected.js"></script>
+    <script src="/shared/embed-bootstrap.js"></script>
+    <script src="/g-turbo/turbo.js"></script>
+  </body>
+</html>

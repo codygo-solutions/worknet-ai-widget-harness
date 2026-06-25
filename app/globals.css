@@ -1,0 +1,175 @@
+/*
+ * Deliberately NOT the worknet design system. The harness imitates external
+ * customer sites; per-archetype look lives in each section. This is only the
+ * neutral chrome for the directory + native-Next section scaffolding.
+ */
+:root {
+  color-scheme: light;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --accent: #2563eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.sub {
+  color: var(--muted);
+  margin: 0 0 18px;
+  font-size: 0.875rem;
+}
+
+.rc {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+.rc-ok {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.rc-bad {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.rc-wait {
+  color: var(--muted);
+}
+
+.sections {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.sections li + li {
+  border-top: 1px solid var(--line);
+}
+
+.sections a {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--ink);
+}
+
+.sections a:hover {
+  background: #f1f5f9;
+  text-decoration: none;
+}
+
+.sections .code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 64px;
+}
+
+.sections .name {
+  flex: 1;
+}
+
+.sections .tag {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.note {
+  margin-top: 18px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+/* Neutral docs/app chrome reused by native-Next sections */
+.docshell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.docnav {
+  width: 220px;
+  border-right: 1px solid var(--line);
+  padding: 20px 16px;
+  background: var(--card);
+}
+
+.docnav a {
+  display: block;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--ink);
+}
+
+.docnav a:hover {
+  background: #f1f5f9;
+  text-decoration: none;
+}
+
+.docmain {
+  flex: 1;
+  padding: 28px 32px;
+  max-width: 720px;
+}
+
+.crumb {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  margin-bottom: 8px;
+}

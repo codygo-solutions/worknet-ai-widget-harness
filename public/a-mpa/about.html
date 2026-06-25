@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content="WordPress 6.5.2" />
+    <link rel="stylesheet" href="/a-mpa/assets/mpa.css" />
+    <link
+      rel="stylesheet"
+      href="/a-mpa/wp-content/themes/acme/style.css?ver=6.5.2"
+    />
+    <title>Acme — About</title>
+  </head>
+  <body class="page wp-singular">
+    <header class="site-header">
+      <div class="bar">
+        <span class="brand">ACME Industrial</span>
+        <nav>
+          <a href="/a-mpa">Home</a>
+          <a href="/a-mpa/about">About</a>
+          <a href="/a-mpa/pricing">Pricing</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <p class="kicker">Classic MPA · WordPress</p>
+      <h1>About Acme</h1>
+      <p>
+        This is a separate physical document (<code>about.html</code>) served at
+        the clean URL <code>/a-mpa/about</code> via a server rewrite. Arriving
+        here was a hard navigation: the whole page — and the widget — reloaded.
+      </p>
+      <div class="callout">
+        nav-probe: hard-reloads incremented; the widget POSTed a new
+        <code>/load</code> → journey ✓.
+      </div>
+    </main>
+    <footer>© Acme Industrial — powered by WordPress</footer>
+
+    <script>
+      window.__wnHarness = { section: { id: 'A', label: 'A · Classic MPA (WordPress)' } };
+    </script>
+    <script src="/shared/nav-probe.js"></script>
+    <script src="/shared/expected.js"></script>
+    <script src="/shared/embed-bootstrap.js"></script>
+  </body>
+</html>

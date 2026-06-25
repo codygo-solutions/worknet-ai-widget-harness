@@ -1,0 +1,26 @@
+/*
+ * Deliberately hostile global CSS. On a NON-Shadow-DOM widget these rules
+ * would leak in and wreck it. The real widget renders in a Shadow root with
+ * adopted stylesheets, so it is fully isolated — this page's own chrome gets
+ * mangled (the visible proof) while the widget stays pristine.
+ */
+* {
+  box-sizing: content-box !important;
+}
+button,
+input,
+textarea,
+select {
+  all: revert !important;
+  font-family: "Comic Sans MS", cursive !important;
+  border: 3px dashed magenta !important;
+  background: yellow !important;
+  color: #c026d3 !important;
+}
+a {
+  color: lime !important;
+  text-decoration: underline wavy red !important;
+}
+div {
+  outline: 1px dotted rgba(255, 0, 0, 0.25);
+}

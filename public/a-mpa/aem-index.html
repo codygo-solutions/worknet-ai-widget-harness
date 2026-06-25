@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/a-mpa/assets/mpa.css" />
+    <link
+      rel="stylesheet"
+      href="/a-mpa/etc.clientlibs/acme/clientlibs/clientlib-base.css"
+    />
+    <title>Acme — Adobe AEM variant</title>
+  </head>
+  <body class="aem-page">
+    <header class="site-header">
+      <div class="bar">
+        <span class="brand">ACME (Adobe AEM)</span>
+        <nav>
+          <a href="/a-mpa">WordPress variant</a>
+          <a href="/a-mpa/about">About</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <p class="kicker">Classic MPA · Adobe Experience Manager</p>
+      <h1>AEM-shaped MPA</h1>
+      <p>
+        Fingerprints: <code>/etc.clientlibs/</code>,
+        <code>/content/dam/</code>, <code>/content/acme/</code>,
+        <code>assets.adobedtm.com</code>, served behind Apache. Enterprise MPA
+        — full reload per nav.
+      </p>
+      <img src="/a-mpa/content/dam/acme/hero.png" alt="" width="1" height="1" />
+    </main>
+    <footer>© Acme — Adobe Experience Manager</footer>
+
+    <script src="https://assets.adobedtm.com/launch-acme.min.js" defer></script>
+    <script>
+      window.__wnHarness = { section: { id: 'A', label: 'A · Classic MPA (Adobe AEM)' } };
+    </script>
+    <script src="/shared/nav-probe.js"></script>
+    <script src="/shared/expected.js"></script>
+    <script src="/shared/embed-bootstrap.js"></script>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acme — single-spa shell</title>
+    <style>
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        color: #0f172a;
+        max-width: 720px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      nav {
+        display: flex;
+        gap: 16px;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+      }
+      a { color: #2563eb; text-decoration: none; }
+      .spa-container { min-height: 160px; }
+    </style>
+  </head>
+  <body>
+    <!-- Shell chrome lives ABOVE the single-spa containers. The widget
+         mounts on document.body (also above), so MFE unmount can't reach it. -->
+    <nav>
+      <strong>Acme MFE shell</strong>
+      <a href="/f-mfe" data-spa-link>Marketing</a>
+      <a href="/f-mfe/account" data-spa-link>Account</a>
+      <a href="/" style="margin-left: auto">← directory (hard nav)</a>
+    </nav>
+
+    <div
+      id="single-spa-application:@acme/marketing"
+      class="spa-container"
+    ></div>
+    <div
+      id="single-spa-application:@acme/account"
+      class="spa-container"
+      style="display: none"
+    ></div>
+
+    <p style="color: #64748b; font-size: 13px; margin-top: 28px">
+      single-spa: each route mounts/unmounts a whole sub-app DOM subtree and
+      synthesizes a popstate (double-fire). The widget survives because its
+      root is above the MFE container — nav-probe stays at one
+      &lt;chat-widget&gt;.
+    </p>
+
+    <script>
+      window.__wnHarness = { section: { id: 'F', label: 'F · Micro-frontend (single-spa)' } };
+    </script>
+    <script src="/shared/nav-probe.js"></script>
+    <script src="/shared/expected.js"></script>
+    <script src="/shared/embed-bootstrap.js"></script>
+    <script src="/f-mfe/app-marketing.js"></script>
+    <script src="/f-mfe/app-account.js"></script>
+    <script src="/f-mfe/shell.js"></script>
+  </body>
+</html>

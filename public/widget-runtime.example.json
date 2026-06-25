@@ -1,0 +1,5 @@
+{
+  "widgetKey": "REPLACE_WITH_wk_KEY",
+  "embedScriptUrl": "http://localhost:5175/src/main.tsx",
+  "embedScriptType": "module"
+}
