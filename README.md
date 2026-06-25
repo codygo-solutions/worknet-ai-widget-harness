@@ -1,139 +1,236 @@
-# widget-harness — Widget Tenant-Site Simulator
+# Widget Tenant-Site Simulator
 
-A **standalone** test harness that embeds the real chat/AI widget across the
-navigation models real customer sites use, with an on-page `nav-probe` that
-shows pass / `✗(now)` per the doc §7 matrix.
+A **standalone** Next.js app that embeds the real Worknet chat/AI widget across the navigation models customer sites use. Each section imitates a different host archetype (MPA, SPA, Next hybrid, strict CSP, etc.). An on-page **nav-probe** (bottom-right) records hard vs soft navigation, widget mount count, and an **Expected vs Actual** table.
 
-It imitates *external customer sites*, so it has **zero coupling to this
-monorepo** — own npm lockfile, no `@worknet/*` deps, standalone
-tsconfig/eslint. The whole directory is `cp -r`-portable to its own repo
-unedited. It deliberately does **not** use the worknet design system.
+**Live demo:** [https://worknet-ai-widget-harness.vercel.app](https://worknet-ai-widget-harness.vercel.app)
 
-## Run it (standalone — primary)
+**Repo:** [github.com/codygo-solutions/worknet-ai-widget-harness](https://github.com/codygo-solutions/worknet-ai-widget-harness)
+
+---
+
+## Quick start
 
 ```bash
-cd client/apps/widget-harness
 npm install
-cp public/widget-runtime.example.json public/widget-runtime.json   # then edit
-npm run build:bundles      # one-time: _bundle-src → public/b1-spa, b2-spa
-                           # (committed output already present — only needed
-                           #  if you change _bundle-src)
-npm run dev                # next dev; open http://localhost:5176/
-npm run verify             # isolation + no-next-fingerprint gates
-npm run lint && npm run typecheck
+cp public/widget-runtime.example.json public/widget-runtime.json   # optional for local dev
+npm run dev                # http://localhost:5176/
 ```
 
-### Runtime config
-
-Like a real customer embed, the harness needs only a **widget key** — it infers
-the backend (`apiBaseUrl`/`chatAppBaseUrl`) from the embed script's origin. The
-git-ignored `public/widget-runtime.json` (copy it from
-`widget-runtime.example.json`) carries the key plus where to load the widget
-code from:
-
-```json
-{
-  "widgetKey": "wk_…",
-  "embedScriptUrl": "http://localhost:5175/src/main.tsx",
-  "embedScriptType": "module"
-}
-```
-
-- `embedScriptUrl` = the widget's dev script (the chat-widget Vite dev origin)
-  or a built `embed.js`. Defaults to the local chat-widget dev server (one port
-  below the harness) when omitted, so a bare `?wk=` works on its own.
-- `apiBaseUrl` / `chatAppBaseUrl` are **optional dev overrides** — only set them
-  to point at a non-inferable backend. The widget otherwise infers both from the
-  embed origin (`apiBaseUrl` drives load, logs, and the chat socket;
-  `chatAppBaseUrl` is SSO-only).
-
-The widget key (and any override) is also settable per-visit via query params —
-the embed persists them to `localStorage` so you only pass them once:
+Open the directory, pick a section, and pass a widget key:
 
 ```
-http://localhost:5176/?wk=wk_…
+http://localhost:5176/?wk=wk_YOUR_KEY
 ```
 
-There is **no seeded widgetKey**. Create a `type: 'widget'` chat app in the
-admin app (with the backend running) and paste its `wk_…` into
-`widget-runtime.json` (or pass `?wk=`). Until then the nav-probe shows a clear
-"set ?wk=" banner.
+For a hosted Worknet stage, admin passes `wk`, `api`, `chat`, and `embed` automatically (see [Admin integration](#admin-integration)).
 
-## What you're looking at
+---
 
-Open the **nav-probe** (bottom-right, every section). For each archetype it
-shows hard-reload vs soft-nav counts, the nav event log, the
-`<chat-widget>` mount count, and an **Expected vs Actual** table encoding
-doc §7.
+## Admin integration
 
-| § | Archetype | Decisive observation |
-|---|---|---|
-| A | Classic MPA (WP/Webflow/HubSpot/AEM) | each link = hard reload + **new `/load`** → journey ✓ |
-| B1 | SPA · HTML5 history | soft-navs rise, hard stays 1, no new `/load` → **✗(now)** |
-| B2 | SPA · hash router | `hashchange` logged, journey **✗(now)** |
-| C·app | Hybrid App Router (RSC) | real `/_next/`+`self.__next_f`; `<Link>` → **✗(now)** |
-| C·pg | Hybrid Pages Router | `__NEXT_DATA__`+`Router.events`+`x-powered-by`; → **✗(now)** |
-| D | Docs SPA | AI-helper found p1, not re-found after soft-nav **✗(now)** |
-| E | Auth-gated app | loads pre-auth → re-identify on login full-nav → in-shell **✗(now)** |
-| F | Micro-frontend (single-spa) | double-`popstate` de-duped; widget survives MFE unmount (1 mount) |
-| G | Turbo MPA-as-soft-nav | DOM/headers look like WordPress but hard stays 1 (the **trap**) |
-| H | Hostile host (strict CSP) | widget **still loads** under nonce-CSP; Shadow DOM blocks bleed CSS; competing widget coexists; `csp-report` shows 0 |
-| I | DOM automation testbed | intentionally hostile DOM patterns (shadow DOM, traps, iframes, wizards) for RPA/agent eval; single full-load page → journey **✓** |
+Deployed admin includes `widgetHarnessUrl` in `__RUNTIME_ENV__.js` (injected at CDK deploy). For any **widget** chat app:
 
-> **H requires `public/widget-runtime.json`.** Section H's CSP allowlist is
-> built server-side from that file only — `?api=`/`?chat=`/`localStorage`
-> embed overrides are invisible to the middleware, so a widget pointed
-> elsewhere via query/localStorage will be CSP-blocked on H. Set the real
-> origins in `widget-runtime.json` before exercising H.
+1. **Preview → Tenant harness** — iframes the hosted harness with that widget’s `wk_…` key and the current stage’s API/chat/embed URLs.
+2. **Open in harness** — opens the harness in a new tab with the same params.
 
-The whole `✗(now)` column is the headline result: the widget has **no
-History instrumentation**, so on every soft-nav archetype it keeps stale
-page context and emits no page-change journey signal. When the separate
-widget History fix lands, those cells flip green **with this harness
-unchanged** — the probe observes real `/load` traffic, it is not wired to
-the widget internals.
+Local admin dev: harness runs on `http://localhost:5176` when you use full `pnpm dev` in the monorepo, or start this app standalone.
+
+---
+
+## Runtime config
+
+Config precedence: **query params** → **localStorage** → **`public/widget-runtime.json`**.
+
+| Param / field | Purpose |
+|---------------|---------|
+| `wk` / `widgetKey` | Widget key (`wk_…`) — required to load the widget |
+| `embed` / `embedScriptUrl` | Where to load widget code (e.g. `…/chat-widget/embed.js`) |
+| `api` / `apiBaseUrl` | API origin override (optional; usually inferred from embed) |
+| `chat` / `chatAppBaseUrl` | Chat app origin override (SSO; optional) |
+
+Example direct URL:
+
+```
+https://worknet-ai-widget-harness.vercel.app/?wk=wk_…&embed=https://app.worknet.ai/chat-widget/embed.js&api=https://api.worknet.ai&chat=https://app.worknet.ai
+```
+
+`public/widget-runtime.json` is gitignored. Copy from `widget-runtime.example.json` for local defaults. **Section H** (hostile CSP) builds its allowlist from this file only — query/localStorage overrides do not apply on H.
+
+---
+
+## Sections (A–I)
+
+Open the **nav-probe** on every section. It shows hard-reload vs soft-nav counts, nav event log, `<chat-widget>` mount count, and Expected vs Actual.
+
+### A — Classic MPA (`/a-mpa`)
+
+**Simulates:** WordPress, Webflow, HubSpot, AEM-style server MPAs.
+
+**How to use:** Click section links (About, Pricing, etc.). Each link is a full page load.
+
+**What to watch:** Hard-reload count rises on every click; a new `/load` fires per navigation → journey **✓**.
+
+---
+
+### B1 — SPA · HTML5 history (`/b1-spa/`)
+
+**Simulates:** React/Vue router with `history.pushState`.
+
+**How to use:** Use in-app nav links (Home → Pricing → Docs). URL changes without full reload.
+
+**What to watch:** Soft-nav count rises; hard stays 1; no new `/load` on in-app nav → journey **✗(now)**.
+
+---
+
+### B2 — SPA · hash router (`/b2-spa/`)
+
+**Simulates:** Hash-based routing (`#/pricing`).
+
+**How to use:** Click nav links; watch `hashchange` in the probe log.
+
+**What to watch:** Same as B1 — soft navigation without journey signal → **✗(now)**.
+
+---
+
+### C·app — Hybrid App Router (`/c-hybrid`)
+
+**Simulates:** Next.js App Router (RSC, `/_next/` assets).
+
+**How to use:** Click `<Link>` routes in the section shell.
+
+**What to watch:** Soft client navigations; journey **✗(now)** until widget History instrumentation lands.
+
+---
+
+### C·pg — Hybrid Pages Router (`/c-pages`)
+
+**Simulates:** Next.js Pages Router (`__NEXT_DATA__`, `Router.events`, `X-Powered-By: Next.js`).
+
+**How to use:** Navigate between pages via Next `<Link>`.
+
+**What to watch:** Same soft-nav / stale context pattern → **✗(now)**.
+
+---
+
+### D — Docs SPA (`/d-docs`)
+
+**Simulates:** Docusaurus/Mintlify-shaped docs site.
+
+**How to use:** Open AI helper on page 1, soft-nav to page 2.
+
+**What to watch:** Helper found on p1, not re-found after soft-nav → **✗(now)**.
+
+---
+
+### E — Auth-gated app (`/e-auth/login`)
+
+**Simulates:** Login wall then in-app shell.
+
+**How to use:** Start logged out → log in → navigate inside the shell.
+
+**What to watch:** Re-identify on login full-nav works; in-shell soft-nav → **✗(now)**.
+
+---
+
+### F — Micro-frontend (`/f-mfe/`)
+
+**Simulates:** single-spa shell; widget survives MFE unmount.
+
+**How to use:** Navigate between MFE routes; probe dedupes double `popstate`.
+
+**What to watch:** Widget stays at 1 mount across MFE lifecycle.
+
+---
+
+### G — Turbo MPA trap (`/g-turbo`)
+
+**Simulates:** Turbo/htmx — looks like WordPress/nginx MPA but soft-navs.
+
+**How to use:** Click links; headers look like server MPA.
+
+**What to watch:** Hard count stays 1 (the trap) — soft-nav without journey signal → **✗(now)**.
+
+---
+
+### H — Hostile host (`/h-hostile`)
+
+**Simulates:** Strict nonce CSP, Shadow DOM, competing third-party widget.
+
+**How to use:** Requires `widget-runtime.json` with real `embedScriptUrl`, `apiBaseUrl`, `chatAppBaseUrl` for your stage (Vercel build env or local file). Query overrides are **ignored** for CSP.
+
+**What to watch:** Widget still loads under nonce-CSP; `csp-report` shows 0 violations when configured correctly.
+
+---
+
+### I — DOM automation testbed (`/i-dom-automation`)
+
+**Simulates:** Hostile DOM for RPA/agent eval (shadow DOM, traps, iframes, wizards).
+
+**How to use:** Open `/i-dom-automation` or section I from the directory. Optional sidecar: `dom-testbed/` mock MCP + REST (`npm start` in that dir → `:3000`).
+
+**What to watch:** Single full-load page → journey **✓**.
+
+---
+
+## Nav-probe
+
+Fixed panel, bottom-right on every section:
+
+- Hard vs soft navigation counts
+- Nav event log (`popstate`, `hashchange`, etc.)
+- `<chat-widget>` mount count
+- **Expected vs Actual** table (doc §7 matrix)
+
+The **✗(now)** column is expected today: the widget has no History instrumentation, so soft-nav archetypes keep stale page context. When the widget History fix ships, those cells flip green **without changing this harness**.
+
+---
+
+## Development
+
+```bash
+npm run verify      # isolation + no-next-fingerprint gates
+npm run lint
+npm run typecheck
+npm run build
+npm run start       # production server on :5176
+```
+
+**`build:bundles`** — only if you change `_bundle-src/` (Vite SPAs for B1/B2). Built output under `public/b1-spa` and `public/b2-spa` is committed.
+
+---
+
+## Deployment
+
+Hosted on **Vercel**. Push to `main` → automatic production deploy.
+
+| Setting | Value |
+|---------|--------|
+| Framework | Next.js |
+| Install | `npm ci` |
+| Build | `npm run build` |
+| Node | 24.x |
+
+**CI:** `.github/workflows/ci.yml` runs `verify`, `lint`, `typecheck`, and `build` on PRs and `main`.
+
+**Optional Vercel env vars** (for section H): `WIDGET_KEY`, `EMBED_URL`, `API_URL`, `CHAT_URL` — use a build step to write `public/widget-runtime.json` if you need H on the hosted instance.
+
+---
 
 ## Architecture
 
-- `app/` — Next App Router: real SSR/RSC sections (C-app, D, E, H) + the
-  section directory shell.
-- `pages/` — Pages Router (the C-pages variant — `__NEXT_DATA__` /
-  `Router.events`).
-- `public/` — non-Next archetypes (A, B1, B2, F, G, I) and the shared
-  scripts. **Zero `/_next/` fingerprints** here, enforced by
-  `scripts/verify-no-next-fingerprints.mjs`.
-- `dom-testbed/` — optional sidecar mock MCP + REST server (`npm start` in
-  that dir → `:3000`). The testbed page itself lives at
-  `public/i-dom-automation/index.html` and is served by the harness at
-  `/i-dom-automation`.
-- `_bundle-src/` — a second isolated npm project (own lockfile + Vite) that
-  builds the B1 (history) and B2 (hash) React-Router SPAs into
-  `public/b1-spa` / `public/b2-spa`. **Built output is committed** so
-  `npm run dev` needs no build step.
-- `middleware.ts` — per-request nonce CSP for H (allowlist derived from the
-  same runtime config the browser embed reads), plus the C-pages /
-  C-app header fingerprints.
-- `public/shared/{nav-probe,expected,embed-bootstrap}.js` — the identical
-  embed + the observe-only instrumentation, used verbatim by every section.
+| Path | Role |
+|------|------|
+| `app/` | Next App Router — SSR/RSC sections (C-app, D, E, H) + directory |
+| `pages/` | Pages Router — C-pages variant |
+| `public/` | Static archetypes (A, B1, B2, F, G, I) — zero `/_next/` fingerprints |
+| `middleware.ts` | CSP nonces (H), fingerprint headers (C-pages, C-app) |
+| `public/shared/` | `nav-probe.js`, `embed-bootstrap.js`, `expected.js` — shared by all sections |
+| `_bundle-src/` | Isolated Vite project → B1/B2 bundles |
 
-## Monorepo dev-env auto-start (optional convenience)
+Zero coupling to the Worknet monorepo — own `package-lock.json`, no `@worknet/*` deps. Liftable as-is.
 
-Standalone is the primary mode. On bare/full `pnpm dev` (all services), the
-dev supervisor also starts the harness on `.pipeline/ports.json`
-`WIDGET_HARNESS` (default `:5176`). Presets such as `pnpm dev admin` or
-`pnpm dev chat` do **not** start it. Opt out with `WN_DEV_WIDGET_HARNESS=0`
-in your root `.env`.
+---
 
-In that mode the `predev` `gen-runtime-config.mjs` writes `widget-runtime.json`
-from the live slot ports when the file does not already exist (you still
-supply a real `widgetKey`). With no dev-env present that script is a clean
-no-op — nothing about standalone mode depends on the monorepo.
+## Monorepo note
 
-Admin widget Preview can switch to **Tenant harness** when running on
-localhost; it iframes the harness with your saved `wk_…` key and dev URLs.
-
-## Out of scope
-
-Building the widget's History fix is a **separate issue**. Tier-2 (a real
-Docusaurus static-export, a real Astro `<ClientRouter/>`) is a later
-follow-up per the design doc §8.
+This app also lives at `client/apps/widget-harness` in [worknet-ai-mono](https://github.com/codygo-solutions/worknet-ai-mono) for co-development. The standalone repo is the deployment source of truth.
