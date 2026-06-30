@@ -66,6 +66,12 @@
     }
   }
 
+  function buildCustomContext(cfg) {
+    var base = parseObject(cfg.customContext) || {};
+    if (!h.session || !h.session.customContext) return base;
+    return Object.assign({}, base, { harness: h.session.customContext });
+  }
+
   function injectConsole() {
     if (h.__consoleInjected) return;
     h.__consoleInjected = true;
@@ -112,10 +118,12 @@
       /* private mode — non-fatal */
     }
 
+    var groupingId = cfg.groupingId || (h.session && h.session.groupingId) || undefined;
+
     window.__WorknetWidget = {
       widgetKey: cfg.widgetKey,
-      groupingId: cfg.groupingId || undefined,
-      customContext: parseObject(cfg.customContext),
+      groupingId: groupingId,
+      customContext: buildCustomContext(cfg),
       onReady: function (api) {
         h.onReadyFired = true;
         h.widgetApi = api;
@@ -182,8 +190,11 @@
     // re-fires onReady (re-capturing h.widgetApi) — like a real host reload.
     h.applyContext = function (groupingId, customContext) {
       if (!window.__WorknetWidget) return;
-      window.__WorknetWidget.groupingId = groupingId || undefined;
-      window.__WorknetWidget.customContext = parseObject(customContext);
+      window.__WorknetWidget.groupingId =
+        groupingId || (h.session && h.session.groupingId) || undefined;
+      window.__WorknetWidget.customContext = customContext
+        ? parseObject(customContext)
+        : buildCustomContext(cfg);
       var existing = document.querySelector('chat-widget');
       if (existing) existing.remove();
       h.widgetApi = undefined;

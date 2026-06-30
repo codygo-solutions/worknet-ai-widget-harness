@@ -1,4 +1,4 @@
-// Injects the SAME three shared scripts every other section uses, in the same
+// Injects the SAME shared scripts every other section uses, in the same
 // order. They are served by the parent Next host at /shared/*.js (absolute) —
 // the bundle never imports anything from the monorepo or the Next app.
 
@@ -14,7 +14,12 @@ export function mountHarnessScripts(section: { id: string; label: string }): voi
   if (w.__wnHarness.__sharedScriptsInjected) return;
   w.__wnHarness.__sharedScriptsInjected = true;
 
-  const sources = ['/shared/nav-probe.js', '/shared/expected.js', '/shared/embed-bootstrap.js'];
+  const sources = [
+    '/shared/nav-probe.js',
+    '/shared/expected.js',
+    '/shared/session-simulator.js',
+    '/shared/embed-bootstrap.js',
+  ];
 
   function add(i: number): void {
     if (i >= sources.length) return;

@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 
 import { getWnHarness } from './wnHarness';
 
-// Injects the SAME three shared scripts every public/ page includes, in the
-// same order (nav-probe → expected → embed-bootstrap), so a native-Next
+// Injects the SAME shared scripts every public/ page includes, in the
+// same order (nav-probe → expected → session → embed-bootstrap), so a native-Next
 // section embeds the widget identically to a non-Next one. Idempotent: the
 // scripts mount once per document even across App-Router soft-navs.
 export default function HarnessShell({
@@ -45,6 +45,7 @@ export default function HarnessShell({
     void (async () => {
       await addScript('/shared/nav-probe.js', false);
       await addScript('/shared/expected.js', false);
+      await addScript('/shared/session-simulator.js', false);
       await addScript('/shared/embed-bootstrap.js', false);
     })();
   }, [sectionId, sectionLabel, nonce]);

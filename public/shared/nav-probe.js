@@ -131,6 +131,43 @@
     var n = widgetCount();
     return n === 1 ? { sym: '✓', note: '1' } : { sym: '✗', note: String(n) };
   }
+  function sessionSummary() {
+    var s = h.session;
+    if (!s) {
+      return {
+        visitor: 'loading',
+        session: 'loading',
+        grouping: '—',
+        user: 'anonymous',
+        events: '',
+      };
+    }
+    var visitor = s.visitor || {};
+    var app = s.appSession || {};
+    var user = app.user && app.user.email ? app.user.email : 'anonymous';
+    var events = (h.sessionEvents || [])
+      .slice()
+      .reverse()
+      .map(function (e) {
+        return (
+          '<div class="logline"><span>' +
+          esc(e.t) +
+          '</span> ' +
+          esc(e.kind) +
+          ' <em>' +
+          esc(e.detail || '') +
+          '</em></div>'
+        );
+      })
+      .join('');
+    return {
+      visitor: (visitor.kind || '?') + ' · visits ' + (visitor.visits || 0),
+      session: app.status || '?',
+      grouping: s.groupingId || '—',
+      user: user,
+      events: events,
+    };
+  }
 
   // ── panel (own Shadow DOM, top-left; draggable by header) ──
   // Top-left keeps it clear of the widget (bottom-right) and console (bottom-left).
@@ -245,6 +282,7 @@
     var jr = journeyActual();
     var sm = singleMountActual();
     var aiActual = jr; // AI-helper re-scan rides the same /load today
+    var ss = sessionSummary();
     var logHtml = navLog
       .slice()
       .reverse()
@@ -280,6 +318,10 @@
       '.counts b{color:#fbbf24}' +
       '.log{background:#020617;border-radius:5px;padding:6px 8px;max-height:96px;' +
       'overflow:auto;margin:6px 0}' +
+      '.session{background:#111827;border:1px solid #1f2937;border-radius:6px;padding:6px 8px;margin:7px 0}' +
+      '.session strong{color:#bfdbfe}.session .actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}' +
+      '.session button{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;color:#dbeafe;background:#1e3a8a;border:1px solid #3b82f6;border-radius:4px;padding:2px 6px;cursor:pointer}' +
+      '.session button:hover{background:#1d4ed8}' +
       '.logline{white-space:nowrap}.logline span{color:#64748b}.logline em{color:#a5b4fc;font-style:normal}' +
       '.log:empty::after{content:"no nav yet";color:#475569}' +
       '.wurl{margin:4px 0}.warn{color:#f59e0b}' +
@@ -308,6 +350,28 @@
       '</b></span><span>soft-navs: <b>' +
       softNavs +
       '</b></span></div>' +
+      '<div class="session">' +
+      '<div>visitor: <strong>' +
+      esc(ss.visitor) +
+      '</strong> · app session: <strong>' +
+      esc(ss.session) +
+      '</strong></div>' +
+      '<div>user: <strong>' +
+      esc(ss.user) +
+      '</strong></div>' +
+      '<div>grouping: <strong>' +
+      esc(ss.grouping) +
+      '</strong></div>' +
+      '<div class="actions">' +
+      '<button data-action="expire">expire</button>' +
+      '<button data-action="logout">logout</button>' +
+      '<button data-action="reload">reload</button>' +
+      '<button data-action="newcomer">newcomer</button>' +
+      '</div>' +
+      '<div class="log">' +
+      ss.events +
+      '</div>' +
+      '</div>' +
       '<div class="log">' +
       logHtml +
       '</div>' +
@@ -338,9 +402,21 @@
     // Header is rebuilt each render, so rebind the drag handle (as with .min).
     var hd = root.querySelector('.hd');
     if (hd) hd.addEventListener('pointerdown', startDrag);
+    root.querySelectorAll('[data-action]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var actions = h.session && h.session.actions;
+        if (!actions) return;
+        var action = el.getAttribute('data-action');
+        if (action === 'expire') actions.expireSession();
+        if (action === 'logout') actions.logout();
+        if (action === 'reload') actions.simulateReload();
+        if (action === 'newcomer') actions.resetVisitor();
+      });
+    });
   }
 
   h.onConfig = render;
+  h.onSessionChange = render;
 
   function mount() {
     if (!document.body) {
