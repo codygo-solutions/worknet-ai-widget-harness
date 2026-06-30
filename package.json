@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "build:bundles": "npm --prefix _bundle-src install --no-audit --no-fund && npm --prefix _bundle-src run build",
     "verify": "node scripts/verify-isolation.mjs && node scripts/verify-no-next-fingerprints.mjs",
-    "predev": "node scripts/gen-runtime-config.mjs"
+    "predev": "node scripts/gen-runtime-config.mjs",
+    "prebuild": "node scripts/gen-runtime-config.mjs"
   },
   "dependencies": {
     "next": "15.5.18",

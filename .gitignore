@@ -5,6 +5,7 @@ node_modules/
 out/
 *.tsbuildinfo
 .eslintcache
+.env*.local
 
 # The only environment-specific file. widget-runtime.example.json is committed;
 # the live one (real wk_ key + local URLs) is per-developer and never committed.
