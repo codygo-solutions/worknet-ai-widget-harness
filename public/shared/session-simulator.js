@@ -112,6 +112,13 @@
     return url.pathname + url.search + url.hash;
   }
 
+  function reloadAsNewcomer(reason) {
+    var nextUrl = urlWithRuntimeConfig(currentRuntimeConfig());
+    emit(reason || 'reload', 'clear storage');
+    clearAllBrowserStorage();
+    window.location.assign(nextUrl);
+  }
+
   if (params.get('storage') === 'clear') clearHostStorage('query');
 
   var visitorIntent = params.get('visitor');
@@ -211,9 +218,7 @@
       },
       actions: {
         resetVisitor: function () {
-          var nextUrl = urlWithRuntimeConfig(currentRuntimeConfig());
-          clearAllBrowserStorage();
-          window.location.assign(nextUrl);
+          reloadAsNewcomer('visitor:reset');
         },
         expireSession: function () {
           setSession({ status: 'expired', user: null, expiredAt: now() }, 'session:expired');
@@ -236,8 +241,7 @@
           setSession({ status: 'anonymous', user: null }, 'logout');
         },
         simulateReload: function () {
-          emit('reload', 'location.reload');
-          window.location.reload();
+          reloadAsNewcomer('reload');
         },
       },
     };
