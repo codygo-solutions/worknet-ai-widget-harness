@@ -116,7 +116,7 @@ Storage ownership:
 | `wn-harness:runtime-config` | localStorage | Harness widget config (`wk`, `api`, `chat`, `embed`) |
 | `wn-harness:hard:{sectionId}` | sessionStorage | Nav-probe hard reload count |
 
-The nav-probe controls can expire the app session, log out, reload the page, or reset to a newcomer. Newcomer clears localStorage and sessionStorage for this origin, then reloads with the current widget runtime config copied into URL params so the widget can bootstrap after storage is wiped. For section H, `public/widget-runtime.json` is still required for the server-side CSP allowlist.
+The nav-probe controls can expire the app session, log out, reload the page, or reset to a newcomer. Reload and newcomer both clear localStorage and sessionStorage for this origin, then reload with the current widget runtime config copied into URL params so the widget can bootstrap after storage is wiped. For section H, `public/widget-runtime.json` is still required for the server-side CSP allowlist.
 
 ---
 
