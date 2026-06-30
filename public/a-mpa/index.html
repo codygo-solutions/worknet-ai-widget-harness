@@ -36,6 +36,35 @@
         Open the nav-probe (bottom-right). Click About / Pricing: hard-reloads
         rises each time, soft-navs stays 0.
       </div>
+      <section class="cards" aria-label="Storefront metrics">
+        <article class="card">
+          <strong>18k</strong>
+          SKUs indexed across bearings, fasteners, and safety stock.
+        </article>
+        <article class="card">
+          <strong>42 min</strong>
+          Median quote response time during business hours.
+        </article>
+        <article class="card">
+          <strong>99.2%</strong>
+          On-time fulfillment from regional warehouses.
+        </article>
+      </section>
+      <form class="lead-form" method="get" action="/a-mpa/pricing">
+        <label>
+          Part number
+          <input name="part" placeholder="e.g. BRG-2048" />
+        </label>
+        <label>
+          Need by
+          <select name="needBy">
+            <option>Today</option>
+            <option>This week</option>
+            <option>This month</option>
+          </select>
+        </label>
+        <button type="submit">Request quote</button>
+      </form>
       <p>
         Sub-variants (same MPA model, different stack fingerprints):
         <a href="/a-mpa/wf-index">Webflow</a> ·
@@ -51,6 +80,7 @@
     </script>
     <script src="/shared/nav-probe.js"></script>
     <script src="/shared/expected.js"></script>
+    <script src="/shared/session-simulator.js"></script>
     <script src="/shared/embed-bootstrap.js"></script>
   </body>
 </html>

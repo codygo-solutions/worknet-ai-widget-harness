@@ -40,6 +40,23 @@
         <code>/load</code> → journey ✗(now). This is the misclassification
         trap (Rails/Laravel + Turbo, Hotwire).
       </div>
+      <section class="cards" aria-label="Turbo metrics">
+        <article class="card">
+          <strong>12</strong>
+          Open carts restored by Turbo Drive without a document reload.
+        </article>
+        <article class="card">
+          <strong>4</strong>
+          Form drafts kept alive in the current page session.
+        </article>
+      </section>
+      <form class="lead-form" data-turbo-frame="_top" action="/g-turbo/pricing">
+        <label>
+          Search catalog
+          <input name="q" placeholder="hydraulic pump" />
+        </label>
+        <button type="submit">Search pricing</button>
+      </form>
     </main>
     <footer>© Acme — "WordPress" (actually Turbo over nginx)</footer>
 
@@ -48,6 +65,7 @@
     </script>
     <script src="/shared/nav-probe.js"></script>
     <script src="/shared/expected.js"></script>
+    <script src="/shared/session-simulator.js"></script>
     <script src="/shared/embed-bootstrap.js"></script>
     <script src="/g-turbo/turbo.js"></script>
   </body>

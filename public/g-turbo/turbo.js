@@ -55,7 +55,20 @@
     visit(href, true);
   });
 
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || form.tagName !== 'FORM') return;
+    var action = form.getAttribute('action') || location.pathname;
+    if (!samesection(action)) return;
+    e.preventDefault();
+    var u = new URL(action, location.href);
+    new FormData(form).forEach(function (value, key) {
+      u.searchParams.set(key, String(value));
+    });
+    visit(u.pathname + u.search, true);
+  });
+
   window.addEventListener('popstate', function () {
-    visit(location.pathname, false);
+    visit(location.pathname + location.search, false);
   });
 })();

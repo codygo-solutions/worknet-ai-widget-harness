@@ -33,6 +33,25 @@
         This is the baseline ✓ archetype the soft-nav ones (B1–G) are contrasted
         against.
       </div>
+      <form class="lead-form" method="get" action="/a-mpa/pricing">
+        <label>
+          Company email
+          <input name="email" type="email" placeholder="buyer@example.com" />
+        </label>
+        <label>
+          Monthly order volume
+          <select name="volume">
+            <option>Under $5k</option>
+            <option>$5k-$25k</option>
+            <option>$25k+</option>
+          </select>
+        </label>
+        <label>
+          Notes
+          <textarea name="notes" rows="3" placeholder="Tell us about your procurement workflow"></textarea>
+        </label>
+        <button type="submit">Calculate plan</button>
+      </form>
     </main>
     <footer>© Acme Industrial — powered by WordPress</footer>
 
@@ -41,6 +60,7 @@
     </script>
     <script src="/shared/nav-probe.js"></script>
     <script src="/shared/expected.js"></script>
+    <script src="/shared/session-simulator.js"></script>
     <script src="/shared/embed-bootstrap.js"></script>
   </body>
 </html>
