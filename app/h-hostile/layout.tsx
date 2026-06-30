@@ -33,7 +33,9 @@ window.__wnHarness.cspNonce = ${n};
   // Order matters: nav-probe patches History/fetch before the widget loads.
   add('/shared/nav-probe.js', function () {
     add('/shared/expected.js', function () {
-      add('/shared/embed-bootstrap.js');
+      add('/shared/session-simulator.js', function () {
+        add('/shared/embed-bootstrap.js');
+      });
     });
   });
   // A pre-existing competing widget already on the host (must coexist).

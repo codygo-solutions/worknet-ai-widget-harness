@@ -3,10 +3,29 @@
 import { useState } from 'react';
 
 import HarnessShell from '../../_components/HarnessShell';
+import { getWnHarness } from '../../_components/wnHarness';
+
+const APP_SESSION_KEY = 'wn-harness:app-session';
+
+function writeAuthenticatedSession(email: string): void {
+  const session = {
+    id: `sess_${Date.now()}`,
+    status: 'authenticated',
+    startedAt: new Date().toISOString(),
+    lastActivityAt: new Date().toISOString(),
+    user: {
+      id: `usr_${email.replace(/[^a-z0-9]+/gi, '_').toLowerCase()}`,
+      email,
+      plan: 'growth',
+      role: 'admin',
+    },
+  };
+  window.sessionStorage.setItem(APP_SESSION_KEY, JSON.stringify(session));
+}
 
 // The login is a SEPARATE document (full navigation, like a real IdP
 // redirect). The widget loads here too — BEFORE any user object exists.
-// Submitting writes a mock token and hard-navigates to the shell, so the
+// Submitting writes a mock app session and hard-navigates to the shell, so the
 // widget re-/loads there and "re-identifies".
 export default function LoginPage(): React.JSX.Element {
   const [email, setEmail] = useState('user@acme.test');
@@ -14,10 +33,12 @@ export default function LoginPage(): React.JSX.Element {
   function onSubmit(e: React.FormEvent): void {
     e.preventDefault();
     try {
-      window.localStorage.setItem(
-        'wn-harness:e-auth-token',
-        JSON.stringify({ sub: email, iat: Date.now() }),
-      );
+      const actions = getWnHarness().session?.actions;
+      if (actions?.loginAs) {
+        actions.loginAs(email);
+      } else {
+        writeAuthenticatedSession(email);
+      }
     } catch {
       /* private mode — the shell guard will just bounce back here */
     }

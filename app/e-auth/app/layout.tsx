@@ -4,9 +4,23 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import HarnessShell from '../../_components/HarnessShell';
+import { getWnHarness } from '../../_components/wnHarness';
+
+const APP_SESSION_KEY = 'wn-harness:app-session';
+
+function readAppSessionStatus(): string | undefined {
+  try {
+    const raw = window.sessionStorage.getItem(APP_SESSION_KEY);
+    if (!raw) return undefined;
+    const session = JSON.parse(raw) as { status?: string };
+    return session.status;
+  } catch {
+    return undefined;
+  }
+}
 
 // The authenticated shell — a long-lived history-routed client section.
-// Guards on the mock token; if absent, bounce to the login document.
+// Guards on the mock app session; if absent/expired, bounce to the login document.
 export default function ShellLayout({
   children,
 }: {
@@ -15,12 +29,17 @@ export default function ShellLayout({
   const [authed, setAuthed] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
-    const ok = !!window.localStorage.getItem('wn-harness:e-auth-token');
-    if (!ok) {
-      window.location.replace('/e-auth/login');
-      return;
+    function guard(): void {
+      const ok = readAppSessionStatus() === 'authenticated';
+      if (!ok) {
+        window.location.replace('/e-auth/login');
+        return;
+      }
+      setAuthed(true);
     }
-    setAuthed(true);
+    guard();
+    const id = window.setInterval(guard, 1000);
+    return () => window.clearInterval(id);
   }, []);
 
   if (!authed) return null;
@@ -45,7 +64,8 @@ export default function ShellLayout({
         <button
           type="button"
           onClick={() => {
-            window.localStorage.removeItem('wn-harness:e-auth-token');
+            getWnHarness().session?.actions?.logout?.();
+            window.sessionStorage.removeItem(APP_SESSION_KEY);
             window.location.assign('/e-auth/login');
           }}
           style={{
@@ -62,7 +82,7 @@ export default function ShellLayout({
       {children}
       <p style={{ color: '#64748b', fontSize: 13, marginTop: 28 }}>
         The widget loaded pre-auth on the login document, re-loaded on the full-nav into this shell
-        (re-identify), and now every in-shell <code>&lt;Link&gt;</code> is a soft-nav → journey{' '}
+        with an authenticated app session, and now every in-shell <code>&lt;Link&gt;</code> is a soft-nav → journey{' '}
         <strong>✗(now)</strong>.
       </p>
     </div>

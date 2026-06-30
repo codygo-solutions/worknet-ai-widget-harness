@@ -20,6 +20,17 @@ export type WnHarness = {
   cspNonce?: string;
   widgetApi?: WnHarnessWidgetApi;
   applyContext?: (groupingId: string, customContext?: Record<string, unknown>) => void;
+  session?: {
+    visitor?: { id?: string; kind?: string; visits?: number };
+    appSession?: { id?: string; status?: string; user?: { email?: string } | null };
+    actions?: {
+      loginAs?: (email: string) => void;
+      logout?: () => void;
+      expireSession?: () => void;
+      resetVisitor?: () => void;
+      simulateReload?: () => void;
+    };
+  };
   consoleCollapsed?: boolean;
   __consoleInjected?: boolean;
   __sharedScriptsInjected?: boolean;
