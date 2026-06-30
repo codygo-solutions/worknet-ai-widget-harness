@@ -10,6 +10,7 @@
   var VISITOR_KEY = 'wn-harness:visitor';
   var APP_SESSION_KEY = 'wn-harness:app-session';
   var ONBOARDING_KEY = 'wn-harness:onboarding';
+  var RUNTIME_CONFIG_KEY = 'wn-harness:runtime-config';
   var h = (window.__wnHarness = window.__wnHarness || {});
   var params = new URLSearchParams(window.location.search);
 
@@ -77,6 +78,38 @@
     remove(window.localStorage, ONBOARDING_KEY);
     remove(window.sessionStorage, APP_SESSION_KEY);
     emit('storage:clear', reason || 'host keys');
+  }
+
+  function clearAllBrowserStorage() {
+    try {
+      window.localStorage.clear();
+    } catch (e) {
+      /* private mode — non-fatal */
+    }
+    try {
+      window.sessionStorage.clear();
+    } catch (e) {
+      /* private mode — non-fatal */
+    }
+  }
+
+  function currentRuntimeConfig() {
+    if (h.config && typeof h.config === 'object') return h.config;
+    return readJson(window.localStorage, RUNTIME_CONFIG_KEY) || {};
+  }
+
+  function setIfPresent(search, key, value) {
+    if (typeof value === 'string' && value !== '') search.set(key, value);
+  }
+
+  function urlWithRuntimeConfig(cfg) {
+    var url = new URL(window.location.href);
+    setIfPresent(url.searchParams, 'wk', cfg.widgetKey);
+    setIfPresent(url.searchParams, 'embed', cfg.embedScriptUrl);
+    setIfPresent(url.searchParams, 'embedType', cfg.embedScriptType);
+    setIfPresent(url.searchParams, 'api', cfg.apiBaseUrl);
+    setIfPresent(url.searchParams, 'chat', cfg.chatAppBaseUrl);
+    return url.pathname + url.search + url.hash;
   }
 
   if (params.get('storage') === 'clear') clearHostStorage('query');
@@ -178,8 +211,9 @@
       },
       actions: {
         resetVisitor: function () {
-          clearHostStorage('action');
-          window.location.assign(window.location.pathname + window.location.search + window.location.hash);
+          var nextUrl = urlWithRuntimeConfig(currentRuntimeConfig());
+          clearAllBrowserStorage();
+          window.location.assign(nextUrl);
         },
         expireSession: function () {
           setSession({ status: 'expired', user: null, expiredAt: now() }, 'session:expired');
