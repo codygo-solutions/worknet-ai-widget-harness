@@ -365,8 +365,7 @@
       '<div class="actions">' +
       '<button data-action="expire">expire</button>' +
       '<button data-action="logout">logout</button>' +
-      '<button data-action="reload">reload</button>' +
-      '<button data-action="newcomer">newcomer</button>' +
+      '<button data-action="clear-storage">Clear storage</button>' +
       '</div>' +
       '<div class="log">' +
       ss.events +
@@ -409,8 +408,7 @@
         var action = el.getAttribute('data-action');
         if (action === 'expire') actions.expireSession();
         if (action === 'logout') actions.logout();
-        if (action === 'reload') actions.simulateReload();
-        if (action === 'newcomer') actions.resetVisitor();
+        if (action === 'clear-storage') actions.clearStorage();
       });
     });
   }
