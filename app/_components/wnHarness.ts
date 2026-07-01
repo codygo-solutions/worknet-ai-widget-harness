@@ -27,8 +27,7 @@ export type WnHarness = {
       loginAs?: (email: string) => void;
       logout?: () => void;
       expireSession?: () => void;
-      resetVisitor?: () => void;
-      simulateReload?: () => void;
+      clearStorage?: () => void;
     };
   };
   consoleCollapsed?: boolean;

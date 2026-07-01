@@ -112,9 +112,9 @@
     return url.pathname + url.search + url.hash;
   }
 
-  function reloadAsNewcomer(reason) {
+  function clearStorageAndReload(reason) {
     var nextUrl = urlWithRuntimeConfig(currentRuntimeConfig());
-    emit(reason || 'reload', 'clear storage');
+    emit(reason || 'storage:clear', 'clear storage');
     clearAllBrowserStorage();
     window.location.assign(nextUrl);
   }
@@ -217,8 +217,8 @@
         onboardingKey: ONBOARDING_KEY,
       },
       actions: {
-        resetVisitor: function () {
-          reloadAsNewcomer('visitor:reset');
+        clearStorage: function () {
+          clearStorageAndReload('storage:clear');
         },
         expireSession: function () {
           setSession({ status: 'expired', user: null, expiredAt: now() }, 'session:expired');
@@ -239,9 +239,6 @@
         },
         logout: function () {
           setSession({ status: 'anonymous', user: null }, 'logout');
-        },
-        simulateReload: function () {
-          reloadAsNewcomer('reload');
         },
       },
     };
